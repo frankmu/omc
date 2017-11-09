@@ -1,4 +1,4 @@
-package com.omc.management.processor;
+package com.omc.service.management.processor;
 
 public class OmcManagementDefaultProcessor implements OmcManagementProcessor {
 
@@ -14,7 +14,7 @@ public class OmcManagementDefaultProcessor implements OmcManagementProcessor {
 
 	@Override
 	public int getTaskExecutorCorePoolSize() {
-		return 10;
+		return 5;
 	}
 
 	@Override

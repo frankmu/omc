@@ -1,4 +1,4 @@
-package com.omc.management.processor;
+package com.omc.service.management.processor;
 
 public interface OmcManagementProcessor {
 

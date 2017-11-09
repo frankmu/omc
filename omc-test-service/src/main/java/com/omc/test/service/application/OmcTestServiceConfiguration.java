@@ -1,4 +1,4 @@
-package com.omc.service.common.application;
+package com.omc.test.service.application;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -7,12 +7,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import com.omc.common.domain.OmcEvent;
-import com.omc.management.processor.OmcManagementDefaultProcessor;
-import com.omc.management.processor.OmcManagementProcessor;
+import com.omc.service.domain.OmcEvent;
+import com.omc.service.management.processor.OmcManagementDefaultProcessor;
+import com.omc.service.management.processor.OmcManagementProcessor;
 
 @Configuration
-public class OmcCommonServiceConfiguration {
+public class OmcTestServiceConfiguration {
 
 	@Bean
     public OmcManagementProcessor omcManagementProcessor() {
