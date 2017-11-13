@@ -4,6 +4,7 @@ import java.util.concurrent.BlockingQueue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,8 +34,8 @@ public class OmcTestServiceController {
 
 	@CrossOrigin
 	@RequestMapping(value = "/go", method = RequestMethod.POST)
-	public String callOmcCommonService() {
-		return "post /go";
+	public boolean callOmcCommonService(@RequestBody OmcEvent omcEvent) {
+		requestQueue.add(omcEvent);
+		return true;
 	}
-
 }

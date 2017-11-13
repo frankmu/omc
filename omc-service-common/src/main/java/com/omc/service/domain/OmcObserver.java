@@ -1,0 +1,39 @@
+package com.omc.service.domain;
+
+public class OmcObserver {
+
+	public enum ResponseState {
+	    SUCCESS,
+	    FAIL
+	}
+
+	private String obname;
+	private Integer intime;
+	private Integer outtime;
+	private ResponseState rs;
+
+	public String getObname() {
+		return obname;
+	}
+	public Integer getIntime() {
+		return intime;
+	}
+	public Integer getOuttime() {
+		return outtime;
+	}
+	public ResponseState getRs() {
+		return rs;
+	}
+	public void setObname(String obname) {
+		this.obname = obname;
+	}
+	public void setIntime(Integer intime) {
+		this.intime = intime;
+	}
+	public void setOuttime(Integer outtime) {
+		this.outtime = outtime;
+	}
+	public void setRs(ResponseState rs) {
+		this.rs = rs;
+	}
+}
