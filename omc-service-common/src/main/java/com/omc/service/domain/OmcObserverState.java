@@ -13,6 +13,12 @@ public class OmcObserverState {
 	private AtomicInteger WarnCount = new AtomicInteger(0);
 	private AtomicInteger FailCount = new AtomicInteger(0);
 
+	public OmcObserverState(String obname, int MaxRQSize, int MaxDQSize) {
+		this.obname = obname;
+		this.MaxRQSize = MaxRQSize;
+		this.MaxDQSize = MaxDQSize;
+	}
+
 	public String getObname() {
 		return obname;
 	}
