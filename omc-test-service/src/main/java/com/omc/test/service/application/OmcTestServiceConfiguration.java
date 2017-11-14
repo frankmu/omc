@@ -8,6 +8,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.omc.service.domain.OmcEvent;
@@ -64,12 +66,22 @@ public class OmcTestServiceConfiguration {
     }
 
 	@Bean
-	public ThreadPoolTaskExecutor taskExecutor() {
+    public AsyncTaskExecutor managerExecutor() {
+        SimpleAsyncTaskExecutor pool = new SimpleAsyncTaskExecutor();
+        pool.setConcurrencyLimit(2);
+        pool.setThreadNamePrefix("OMC-Manager-");
+        logger.debug("Initialize Manager Executor");
+        return pool;
+    }
+
+	@Bean
+	public ThreadPoolTaskExecutor workerExecutor() {
 		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
 		pool.setCorePoolSize(taskExecutorCorePoolSize);
 		pool.setMaxPoolSize(taskExecutorMaxPoolSize);
 		pool.setWaitForTasksToCompleteOnShutdown(true);
-		logger.debug("Initialize Task Executor with core pool size: " + taskExecutorCorePoolSize + ", max pool size: " + taskExecutorMaxPoolSize);
+		pool.setThreadNamePrefix("OMC-Worker-");
+		logger.debug("Initialize Worker Executor with core pool size: " + taskExecutorCorePoolSize + ", max pool size: " + taskExecutorMaxPoolSize);
 		return pool;
 	}
 }
