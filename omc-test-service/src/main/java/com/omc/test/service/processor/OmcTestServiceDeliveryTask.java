@@ -18,7 +18,7 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 
 	@Override
 	public void run() {
-		logger.debug("Starting Request Queue worker thread");
+		logger.debug("Starting Delivery Queue worker thread");
 		try {
 			while(true) {
 				OmcEvent omcEvent = this.omcQueue.take();

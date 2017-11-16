@@ -63,16 +63,16 @@ public class OmcTestServiceInitializer {
 			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue));
 		}
 
-		String ip = InetAddress.getLocalHost().getHostAddress();
-		String uri = ip + "/" + serverPort + servletContext.getContextPath();
+		String hostname = InetAddress.getLocalHost().getHostName();
+		String uri = hostname + ":" + serverPort + servletContext.getContextPath();
 		omcServiceRegistry.registerService(omcServiceRegistryName, uri);
 		logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
 	}
 
 	@PreDestroy
 	public void destroy() throws UnknownHostException {
-		String ip = InetAddress.getLocalHost().getHostAddress();
-		String uri = ip + "/" + serverPort + servletContext.getContextPath();
+		String hostname = InetAddress.getLocalHost().getHostName();
+		String uri = hostname + ":" + serverPort + servletContext.getContextPath();
 		omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 		logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
 	}
