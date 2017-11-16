@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +29,12 @@ public class OmcTestServiceInitializer {
 	@Value("${omc.service.registry.name}")
 	private String omcServiceRegistryName;
 
+	@Value("${omc.request.task.thread.size}")
+	private int requestTaskThreadSize;
+
+	@Value("${omc.delivery.task.thread.size}")
+	private int deliveryTaskThreadSize;
+
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Autowired
@@ -37,9 +42,6 @@ public class OmcTestServiceInitializer {
 	
 	@Autowired
     private ServletContext servletContext;
-
-	@Autowired
-	AsyncTaskExecutor managerExecutor;
 
 	@Autowired
 	ThreadPoolTaskExecutor workerExecutor;
@@ -52,8 +54,14 @@ public class OmcTestServiceInitializer {
 
 	@PostConstruct
 	public void init() throws UnknownHostException {
-		//managerExecutor.execute(new requestQueueDispatcher());
-		//managerExecutor.execute(new deliveryQueueDispatcher());
+		// Start the worker threads
+		for(int i = 0; i < requestTaskThreadSize; i++) {
+			workerExecutor.execute(new OmcTestServiceRequestTask(requestQueue));
+		}
+
+		for(int i = 0; i < deliveryTaskThreadSize; i++) {
+			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue));
+		}
 
 		String ip = InetAddress.getLocalHost().getHostAddress();
 		String uri = ip + "/" + serverPort + servletContext.getContextPath();
@@ -67,37 +75,5 @@ public class OmcTestServiceInitializer {
 		String uri = ip + "/" + serverPort + servletContext.getContextPath();
 		omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 		logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
-	}
-
-	public class requestQueueDispatcher implements Runnable{
-		@Override
-		public void run() {
-			logger.debug("Starting Request Queue Dispatcher thread");
-			try {
-				while(true) {
-					OmcEvent omcEvent = requestQueue.take();
-					logger.debug("Request Queue Dispatcher get a request with data: " + omcEvent.toString());
-					workerExecutor.execute(new OmcTestServiceRequestTask(omcEvent));
-				}
-			} catch (InterruptedException e){
-				logger.error(e.getMessage());
-			}
-		}
-	}
-
-	public class deliveryQueueDispatcher implements Runnable{
-		@Override
-		public void run() {
-			logger.debug("Starting Delivery Queue Dispatcher thread");
-			try {
-				while(true) {
-					OmcEvent omcEvent = deliveryQueue.take();
-					logger.debug("Deliveryt Queue Dispatcher get a request with data: " + omcEvent.toString());
-					workerExecutor.execute(new OmcTestServiceDeliveryTask(omcEvent));
-				}
-			} catch (InterruptedException e){
-				logger.error(e.getMessage());
-			}
-		}
 	}
 }

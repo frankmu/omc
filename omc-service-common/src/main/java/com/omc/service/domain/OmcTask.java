@@ -1,14 +1,16 @@
 package com.omc.service.domain;
 
+import java.util.concurrent.BlockingQueue;
+
 public abstract class OmcTask implements Runnable {
 
-	private OmcEvent omcEvent;
+	protected BlockingQueue<OmcEvent> omcQueue;
 
-	public OmcTask(OmcEvent omcEvent) {
-		this.omcEvent = omcEvent;
+	public OmcTask(BlockingQueue<OmcEvent> omcQueue) {
+		this.omcQueue = omcQueue;
 	}
 
-	public OmcEvent getOmcEvent() {
-		return omcEvent;
+	public BlockingQueue<OmcEvent> getOmcQueue() {
+		return omcQueue;
 	}
 }

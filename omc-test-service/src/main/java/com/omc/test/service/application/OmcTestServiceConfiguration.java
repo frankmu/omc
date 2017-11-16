@@ -8,8 +8,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.omc.service.domain.OmcEvent;
@@ -29,11 +27,11 @@ public class OmcTestServiceConfiguration {
 	@Value("${omc.delivery.queue.max.size}")
 	private int MaxDQSize;
 
-	@Value("${omc.task.thread.executor.core.pool.size}")
-	private int taskExecutorCorePoolSize;
+	@Value("${omc.request.task.thread.size}")
+	private int requestTaskThreadSize;
 
-	@Value("${omc.task.thread.executor.max.pool.size}")
-	private int taskExecutorMaxPoolSize;
+	@Value("${omc.delivery.task.thread.size}")
+	private int deliveryTaskThreadSize;
 
 	@Value("${zookeeper.host}")
 	private String zookeeperHost;
@@ -66,22 +64,13 @@ public class OmcTestServiceConfiguration {
     }
 
 	@Bean
-    public AsyncTaskExecutor managerExecutor() {
-        SimpleAsyncTaskExecutor pool = new SimpleAsyncTaskExecutor();
-        pool.setConcurrencyLimit(2);
-        pool.setThreadNamePrefix("OMC-Manager-");
-        logger.debug("Initialize Manager Executor");
-        return pool;
-    }
-
-	@Bean
 	public ThreadPoolTaskExecutor workerExecutor() {
 		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-		pool.setCorePoolSize(taskExecutorCorePoolSize);
-		pool.setMaxPoolSize(taskExecutorMaxPoolSize);
-		pool.setWaitForTasksToCompleteOnShutdown(true);
+		int totalThreadSize = requestTaskThreadSize + deliveryTaskThreadSize;
+		pool.setCorePoolSize(totalThreadSize);
 		pool.setThreadNamePrefix("OMC-Worker-");
-		logger.debug("Initialize Worker Executor with core pool size: " + taskExecutorCorePoolSize + ", max pool size: " + taskExecutorMaxPoolSize);
+		pool.setWaitForTasksToCompleteOnShutdown(true);
+		logger.debug("Initialize Worker Executor with pool size: " + totalThreadSize);
 		return pool;
 	}
 }
