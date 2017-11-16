@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserverState;
+import com.omc.service.util.OmcEventUtil;
 
 @RestController
 public class OmcTestServiceController {
@@ -35,6 +36,7 @@ public class OmcTestServiceController {
 	@CrossOrigin
 	@RequestMapping(value = "/go", method = RequestMethod.POST)
 	public boolean callOmcCommonService(@RequestBody OmcEvent omcEvent) {
+		OmcEventUtil.appendCurrentObserver(omcEvent, omcObserverState.getObname());
 		requestQueue.add(omcEvent);
 		return true;
 	}

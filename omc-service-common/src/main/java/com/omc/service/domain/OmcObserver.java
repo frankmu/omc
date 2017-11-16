@@ -8,17 +8,17 @@ public class OmcObserver {
 	}
 
 	private String obname;
-	private Integer intime;
-	private Integer outtime;
+	private Long intime;
+	private Long outtime;
 	private ResponseState rs;
 
 	public String getObname() {
 		return obname;
 	}
-	public Integer getIntime() {
+	public Long getIntime() {
 		return intime;
 	}
-	public Integer getOuttime() {
+	public Long getOuttime() {
 		return outtime;
 	}
 	public ResponseState getRs() {
@@ -27,10 +27,10 @@ public class OmcObserver {
 	public void setObname(String obname) {
 		this.obname = obname;
 	}
-	public void setIntime(Integer intime) {
+	public void setIntime(Long intime) {
 		this.intime = intime;
 	}
-	public void setOuttime(Integer outtime) {
+	public void setOuttime(Long outtime) {
 		this.outtime = outtime;
 	}
 	public void setRs(ResponseState rs) {
