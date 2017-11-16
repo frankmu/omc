@@ -1,17 +1,16 @@
 package com.omc.service.zookeeper;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryNTimes;
-import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
 
+import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.registration.OmcServiceRegistry;
 
-public class OmcZookeeperServiceRegistry implements OmcServiceRegistry {
+public class OmcZookeeperServiceRegistry implements OmcServiceRegistry, OmcServiceDiscovery {
 
 	private final CuratorFramework curatorFramework;
 	private final ConcurrentHashMap<String, String> uriToZnodePath;
@@ -26,12 +25,9 @@ public class OmcZookeeperServiceRegistry implements OmcServiceRegistry {
 	public void registerService(String znode, String uri) {
 		try {
 			if (curatorFramework.checkExists().forPath(znode) == null) {
-				curatorFramework.create().creatingParentsIfNeeded().forPath(znode);
+				curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(znode, uri.getBytes());
 			}
-
-			String znodePath = curatorFramework.create().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(znode, uri.getBytes());
-
-			uriToZnodePath.put(uri, znodePath);
+			uriToZnodePath.put(uri, znode);
 		} catch (Exception ex) {
 			throw new RuntimeException("Could not register service \"" + znode + "\", with URI \"" + uri + "\": " + ex.getLocalizedMessage());
 		}
@@ -51,8 +47,7 @@ public class OmcZookeeperServiceRegistry implements OmcServiceRegistry {
 	@Override
 	public String discoverServiceURI(String znode) {
 		try {
-			List<String> uris = curatorFramework.getChildren().forPath(znode);
-			return new String(curatorFramework.getData().forPath(ZKPaths.makePath(znode, uris.get(0))));
+			return new String(curatorFramework.getData().forPath(znode));
 		} catch (Exception ex) {
 			throw new RuntimeException("Service \"" + znode + "\" not found: " + ex.getLocalizedMessage());
 		}

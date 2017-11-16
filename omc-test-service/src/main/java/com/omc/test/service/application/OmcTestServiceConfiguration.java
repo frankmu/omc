@@ -10,9 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.omc.service.discovery.OmcServiceDiscovery;
+import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
+import com.omc.service.registration.OmcServiceRegistry.RegistryMode;
 import com.omc.service.zookeeper.OmcZookeeperServiceRegistry;
 
 @Configuration
@@ -39,6 +42,12 @@ public class OmcTestServiceConfiguration {
 	@Value("${zookeeper.port}")
 	private String zookeeperPort;
 
+	@Value("${omc.service.registry.mode}")
+	private String registryMode;
+
+	@Value("${omc.service.discovery.mode}")
+	private String discoveryMode;
+
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Bean
@@ -59,8 +68,27 @@ public class OmcTestServiceConfiguration {
     }
 
 	@Bean
+    public OmcZookeeperServiceRegistry OmcZookeeperServiceRegistry() {
+		if(RegistryMode.ZOOKEEPER.toString().equalsIgnoreCase(registryMode) || DiscoveryMode.ZOOKEEPER.toString().equalsIgnoreCase(discoveryMode)) {
+			return new OmcZookeeperServiceRegistry(zookeeperHost, zookeeperPort);
+		}
+		return null;
+    }
+
+	@Bean
     public OmcServiceRegistry omcServiceRegistry() {
-        return new OmcZookeeperServiceRegistry(zookeeperHost, zookeeperPort);
+		if(RegistryMode.ZOOKEEPER.toString().equalsIgnoreCase(registryMode)) {
+			return OmcZookeeperServiceRegistry();
+		}
+		return null;
+    }
+
+	@Bean
+    public OmcServiceDiscovery omcServiceDiscovery() {
+		if(DiscoveryMode.ZOOKEEPER.toString().equalsIgnoreCase(discoveryMode)) {
+			return OmcZookeeperServiceRegistry();
+		}
+		return null;
     }
 
 	@Bean

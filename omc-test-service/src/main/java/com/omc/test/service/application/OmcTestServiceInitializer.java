@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.registration.OmcServiceRegistry;
 import com.omc.test.service.processor.OmcTestServiceDeliveryTask;
@@ -35,10 +36,16 @@ public class OmcTestServiceInitializer {
 	@Value("${omc.delivery.task.thread.size}")
 	private int deliveryTaskThreadSize;
 
+	@Value("${omc.delivery.mode}")
+	private String deliveryMode;
+
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Autowired
 	OmcServiceRegistry omcServiceRegistry;
+
+	@Autowired
+	OmcServiceDiscovery omcServiceDiscovery;
 	
 	@Autowired
     private ServletContext servletContext;
@@ -60,20 +67,24 @@ public class OmcTestServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue));
+			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode));
 		}
 
-		String hostname = InetAddress.getLocalHost().getHostName();
-		String uri = hostname + ":" + serverPort + servletContext.getContextPath();
-		omcServiceRegistry.registerService(omcServiceRegistryName, uri);
-		logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
+		if(omcServiceRegistry != null) {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			omcServiceRegistry.registerService(omcServiceRegistryName, uri);
+			logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
+		}
 	}
 
 	@PreDestroy
 	public void destroy() throws UnknownHostException {
-		String hostname = InetAddress.getLocalHost().getHostName();
-		String uri = hostname + ":" + serverPort + servletContext.getContextPath();
-		omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
-		logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
+		if(omcServiceRegistry != null) {
+			String hostname = InetAddress.getLocalHost().getHostName();
+			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
+			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
+		}
 	}
 }
