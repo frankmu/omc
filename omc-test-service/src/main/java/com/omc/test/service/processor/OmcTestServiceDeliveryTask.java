@@ -6,7 +6,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserver.ResponseState;
 import com.omc.service.domain.OmcTask;
+import com.omc.service.util.OmcEventUtil;
 
 public class OmcTestServiceDeliveryTask extends OmcTask {
 
@@ -22,8 +24,10 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 		try {
 			while(true) {
 				OmcEvent omcEvent = this.omcQueue.take();
-				logger.debug("Get request from Request Queue: " + omcEvent.toString());
+				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
+				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
+				logger.debug("Successfully deliveried event: " + omcEvent.toString());
 			}
 		} catch (InterruptedException e){
 			logger.error(e.getMessage());

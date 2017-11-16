@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserver;
+import com.omc.service.domain.OmcObserver.ResponseState;
 
 public class OmcEventUtil {
 
@@ -18,5 +19,12 @@ public class OmcEventUtil {
 		newObserver.setIntime(System.currentTimeMillis());
 		observers.add(newObserver);
 		omcEvent.setObservers(observers);
+	}
+
+	public static void updateObserverDeliveryState(OmcEvent omcEvent, ResponseState rs) {
+		List<OmcObserver> observers = omcEvent.getObservers();
+		OmcObserver currentObserver = observers.get(observers.size() - 1);
+		currentObserver.setOuttime(System.currentTimeMillis());
+		currentObserver.setRs(rs);
 	}
 }

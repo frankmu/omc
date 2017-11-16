@@ -10,10 +10,13 @@ import com.omc.service.domain.OmcTask;
 
 public class OmcTestServiceRequestTask extends OmcTask {
 
+	private BlockingQueue<OmcEvent> deliveryQueue;
+
 	private final Log logger = LogFactory.getLog(OmcTestServiceRequestTask.class);
 
-	public OmcTestServiceRequestTask(BlockingQueue<OmcEvent> requestQueue) {
+	public OmcTestServiceRequestTask(BlockingQueue<OmcEvent> requestQueue, BlockingQueue<OmcEvent> deliveryQueue) {
 		super(requestQueue);
+		this.deliveryQueue = deliveryQueue;
 	}
 
 	@Override
@@ -22,8 +25,9 @@ public class OmcTestServiceRequestTask extends OmcTask {
 		try {
 			while(true) {
 				OmcEvent omcEvent = this.omcQueue.take();
-				logger.debug("Get request from Request Queue: " + omcEvent.toString());
+				logger.debug("Get task from Request Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
+				deliveryQueue.put(omcEvent);
 			}
 		} catch (InterruptedException e){
 			logger.error(e.getMessage());

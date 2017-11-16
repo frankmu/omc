@@ -56,7 +56,7 @@ public class OmcTestServiceInitializer {
 	public void init() throws UnknownHostException {
 		// Start the worker threads
 		for(int i = 0; i < requestTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcTestServiceRequestTask(requestQueue));
+			workerExecutor.execute(new OmcTestServiceRequestTask(requestQueue, deliveryQueue));
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
