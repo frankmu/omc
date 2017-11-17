@@ -2,6 +2,8 @@ package com.omc.test.service.controller;
 
 import java.util.concurrent.BlockingQueue;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +37,7 @@ public class OmcTestServiceController {
 
 	@CrossOrigin
 	@RequestMapping(value = "/go", method = RequestMethod.POST)
-	public boolean callOmcCommonService(@RequestBody OmcEvent omcEvent) {
+	public boolean callOmcCommonService(@Valid @RequestBody OmcEvent omcEvent) {
 		OmcEventUtil.appendCurrentObserver(omcEvent, omcObserverState.getObname());
 		requestQueue.add(omcEvent);
 		return true;

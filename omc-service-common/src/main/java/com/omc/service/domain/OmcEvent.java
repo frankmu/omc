@@ -3,12 +3,18 @@ package com.omc.service.domain;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import com.google.gson.Gson;
 
 public class OmcEvent {
 
+	@NotBlank(message = "eventid cannot be empty!")
 	private String eventid;
 	private List<OmcObserver> observers;
+
+	@NotEmpty(message = "data cannot be empty!")
 	private Map<String, String> data;
 
 	public String getEventid() {
