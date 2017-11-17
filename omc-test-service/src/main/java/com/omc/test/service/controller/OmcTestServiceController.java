@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserverState;
+import com.omc.service.exception.OmcRequestQueueFullException;
 import com.omc.service.util.OmcEventUtil;
 
 @RestController
@@ -37,7 +38,10 @@ public class OmcTestServiceController {
 
 	@CrossOrigin
 	@RequestMapping(value = "/go", method = RequestMethod.POST)
-	public boolean callOmcCommonService(@Valid @RequestBody OmcEvent omcEvent) {
+	public boolean callOmcCommonService(@Valid @RequestBody OmcEvent omcEvent) throws OmcRequestQueueFullException {
+		if(requestQueue.remainingCapacity() == 0) {
+			throw new OmcRequestQueueFullException("Request queue is full, please try again later.");
+		}
 		OmcEventUtil.appendCurrentObserver(omcEvent, omcObserverState.getObname());
 		requestQueue.add(omcEvent);
 		return true;

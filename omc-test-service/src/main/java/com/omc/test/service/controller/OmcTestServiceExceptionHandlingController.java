@@ -1,5 +1,6 @@
 package com.omc.test.service.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import com.omc.service.exception.OmcRequestQueueFullException;
 
 @ControllerAdvice
 public class OmcTestServiceExceptionHandlingController {
@@ -22,6 +25,16 @@ public class OmcTestServiceExceptionHandlingController {
         response.setErrors(result.getAllErrors().stream().map(error -> error.getDefaultMessage()).collect(Collectors.toList()));
         return new ResponseEntity<ExceptionResponse>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(OmcRequestQueueFullException.class)
+    public ResponseEntity<ExceptionResponse> requestIsFull(OmcRequestQueueFullException ex) {
+        ExceptionResponse response = new ExceptionResponse();
+        response.setErrorCode("Service Error");
+        response.setErrorMessage(ex.getMessage());
+        response.setErrors(Arrays.asList(ex.getMessage()));
+        return new ResponseEntity<ExceptionResponse>(response, HttpStatus.BAD_REQUEST);
+    }
+    
 
     public class ExceptionResponse {
         private String errorCode;
