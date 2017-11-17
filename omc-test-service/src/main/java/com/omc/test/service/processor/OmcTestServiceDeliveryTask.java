@@ -28,21 +28,22 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 	@Override
 	public void run() {
 		logger.debug("Starting Delivery Queue worker thread");
-		try {
-			while(true) {
+		while (true) {
+			try {
 				OmcEvent omcEvent = this.omcQueue.take();
 				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
 				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
-				if(deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
+				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 					RestTemplate restTemplate = new RestTemplate();
 					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
 				}
 				logger.debug("Successfully deliveried event: " + omcEvent.toString());
+
+			} catch (Exception e) {
+				logger.error(e.getMessage());
 			}
-		} catch (InterruptedException e){
-			logger.error(e.getMessage());
 		}
 	}
 }

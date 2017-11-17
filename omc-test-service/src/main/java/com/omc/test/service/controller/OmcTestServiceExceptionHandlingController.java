@@ -32,7 +32,7 @@ public class OmcTestServiceExceptionHandlingController {
         response.setErrorCode("Service Error");
         response.setErrorMessage(ex.getMessage());
         response.setErrors(Arrays.asList(ex.getMessage()));
-        return new ResponseEntity<ExceptionResponse>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<ExceptionResponse>(response, HttpStatus.SERVICE_UNAVAILABLE);
     }
     
 

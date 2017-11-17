@@ -22,15 +22,15 @@ public class OmcTestServiceRequestTask extends OmcTask {
 	@Override
 	public void run() {
 		logger.debug("Starting Request Queue worker thread");
-		try {
-			while(true) {
+		while (true) {
+			try {
 				OmcEvent omcEvent = this.omcQueue.take();
 				logger.debug("Get task from Request Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
 				deliveryQueue.put(omcEvent);
+			} catch (Exception e) {
+				logger.error(e.getMessage());
 			}
-		} catch (InterruptedException e){
-			logger.error(e.getMessage());
 		}
 	}
 }
