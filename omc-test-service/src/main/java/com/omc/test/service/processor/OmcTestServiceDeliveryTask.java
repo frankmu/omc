@@ -20,35 +20,58 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 	private OmcServiceDiscovery omcServiceDiscovery;
 	private String deliveryMode;
 	private OmcObserverState omcObserverState;
+	private int deliveryRetryCount;
 
-	public OmcTestServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, OmcServiceDiscovery omcServiceDiscovery, String deliveryMode, OmcObserverState omcObserverState) {
+	public OmcTestServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, 
+			OmcServiceDiscovery omcServiceDiscovery,
+			String deliveryMode,
+			OmcObserverState omcObserverState,
+			int deliveryRetryCount) {
 		super(deliveryQueue);
 		this.omcServiceDiscovery = omcServiceDiscovery;
 		this.deliveryMode = deliveryMode;
 		this.omcObserverState = omcObserverState;
+		this.deliveryRetryCount = deliveryRetryCount;
 	}
 
 	@Override
 	public void run() {
 		logger.debug("Starting Delivery Queue worker thread");
 		while (true) {
+			if(!process()) {
+				logger.debug("Exceeded max retry count, delivery service error!");
+				break;
+			}
+		}
+		logger.debug("Delivery Queue worker thread stopped!");
+	}
+
+	private boolean process() {
+		int retryCount = 0;
+		while(retryCount++ < deliveryRetryCount) {
 			try {
 				OmcEvent omcEvent = this.omcQueue.take();
 				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
-				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 					RestTemplate restTemplate = new RestTemplate();
 					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
 				}
 				omcObserverState.incrementSuccCount();
+				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				logger.debug("Successfully deliveried event: " + omcEvent.toString());
-
+				return true;
 			} catch (Exception e) {
 				omcObserverState.incrementFailCount();
 				logger.error(e.getMessage());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+
+				}
 			}
 		}
+		return false;
 	}
 }

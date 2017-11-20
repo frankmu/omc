@@ -45,6 +45,9 @@ public class OmcTestServiceInitializer {
 	@Value("${omc.delivery.mode}")
 	private String deliveryMode;
 
+	@Value("${omc.delivery.retry.count}")
+	private int deliveryRetryCount;
+
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Autowired
@@ -76,7 +79,7 @@ public class OmcTestServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState));
+			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount));
 		}
 
 		if(omcServiceRegistry != null) {
