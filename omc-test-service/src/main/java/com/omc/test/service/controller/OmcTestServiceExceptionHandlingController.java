@@ -37,7 +37,7 @@ public class OmcTestServiceExceptionHandlingController {
         response.setErrorCode("Service Error");
         response.setErrorMessage(ex.getMessage());
         response.setErrors(Arrays.asList(ex.getMessage()));
-        logger.debug("Request queue is full nowb, reject the request");
+        logger.debug("Request queue is full now, reject the request");
         return new ResponseEntity<ExceptionResponse>(response, HttpStatus.SERVICE_UNAVAILABLE);
     }
 

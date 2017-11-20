@@ -12,6 +12,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,9 @@ import com.omc.test.service.processor.OmcTestServiceRequestTask;
 
 @Component
 public class OmcTestServiceInitializer {
+
+	@Value("${omc.obname}")
+	private String obname;
 
 	@Value("${server.port}")
 	private String serverPort;
@@ -86,5 +91,10 @@ public class OmcTestServiceInitializer {
 			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
+	}
+
+	@EventListener(ApplicationReadyEvent.class)
+	public void doSomethingAfterStartup() {
+		logger.info("Service " + obname + " has been started successfully!");
 	}
 }
