@@ -38,37 +38,42 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 	public void run() {
 		logger.debug("Starting Delivery Queue worker thread");
 		while (true) {
-			if(!process()) {
-				logger.debug("Exceeded max retry count, delivery service error!");
-				break;
+			try {
+				OmcEvent omcEvent = this.omcQueue.take();
+				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
+				if (process(omcEvent)) {
+					omcObserverState.incrementSuccCount();
+					OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
+					logger.debug("Successfully deliveried event: " + omcEvent.toString());
+				} else {
+					logger.debug("Exceeded max retry count, delivery service error!");
+					break;
+				}
+			} catch (InterruptedException e) {
+				logger.error("Thread was interrupted!");
 			}
 		}
 		logger.debug("Delivery Queue worker thread stopped!");
 	}
 
-	private boolean process() {
+	private boolean process(OmcEvent omcEvent) {
 		int retryCount = 0;
-		while(retryCount++ < deliveryRetryCount) {
+		while(retryCount < deliveryRetryCount) {
 			try {
-				OmcEvent omcEvent = this.omcQueue.take();
-				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 					RestTemplate restTemplate = new RestTemplate();
 					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
 				}
-				omcObserverState.incrementSuccCount();
-				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
-				logger.debug("Successfully deliveried event: " + omcEvent.toString());
 				return true;
 			} catch (Exception e) {
 				omcObserverState.incrementFailCount();
-				logger.error(e.getMessage());
+				logger.error(e.getMessage() + " [Retry times: " + retryCount++ + " times]");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException ie) {
-
+					logger.error("Thread was interrupted!");
 				}
 			}
 		}
