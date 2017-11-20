@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
 import com.omc.test.service.processor.OmcTestServiceDeliveryTask;
 import com.omc.test.service.processor.OmcTestServiceRequestTask;
@@ -64,6 +65,9 @@ public class OmcTestServiceInitializer {
 	@Autowired
 	BlockingQueue<OmcEvent> deliveryQueue;
 
+	@Autowired
+	OmcObserverState omcObserverState;
+
 	@PostConstruct
 	public void init() throws UnknownHostException {
 		// Start the worker threads
@@ -72,7 +76,7 @@ public class OmcTestServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode));
+			workerExecutor.execute(new OmcTestServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState));
 		}
 
 		if(omcServiceRegistry != null) {

@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverState;
 import com.omc.service.domain.OmcObserver.ResponseState;
 import com.omc.service.domain.OmcTask;
 import com.omc.service.util.OmcEventUtil;
@@ -18,11 +19,13 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 	private final Log logger = LogFactory.getLog(OmcTestServiceDeliveryTask.class);
 	private OmcServiceDiscovery omcServiceDiscovery;
 	private String deliveryMode;
+	private OmcObserverState omcObserverState;
 
-	public OmcTestServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, OmcServiceDiscovery omcServiceDiscovery, String deliveryMode) {
+	public OmcTestServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, OmcServiceDiscovery omcServiceDiscovery, String deliveryMode, OmcObserverState omcObserverState) {
 		super(deliveryQueue);
 		this.omcServiceDiscovery = omcServiceDiscovery;
 		this.deliveryMode = deliveryMode;
+		this.omcObserverState = omcObserverState;
 	}
 
 	@Override
@@ -39,9 +42,11 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 					RestTemplate restTemplate = new RestTemplate();
 					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
 				}
+				omcObserverState.incrementSuccCount();
 				logger.debug("Successfully deliveried event: " + omcEvent.toString());
 
 			} catch (Exception e) {
+				omcObserverState.incrementFailCount();
 				logger.error(e.getMessage());
 			}
 		}
