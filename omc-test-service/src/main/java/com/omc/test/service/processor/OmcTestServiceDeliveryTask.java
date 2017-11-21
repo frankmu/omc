@@ -58,7 +58,7 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 
 	private boolean process(OmcEvent omcEvent) {
 		int retryCount = 0;
-		while(retryCount < deliveryRetryCount) {
+		while(retryCount <= deliveryRetryCount) {
 			try {
 				Thread.sleep(5000);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
@@ -69,7 +69,7 @@ public class OmcTestServiceDeliveryTask extends OmcTask {
 				return true;
 			} catch (Exception e) {
 				omcObserverState.incrementFailCount();
-				logger.error(e.getMessage() + " [Retry times: " + retryCount++ + " times]");
+				logger.error(e.getMessage() + " [Retry " + retryCount++ + "/" + deliveryRetryCount + "]");
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException ie) {
