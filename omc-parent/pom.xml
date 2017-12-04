@@ -20,6 +20,7 @@
 	<modules>
 		<module>../omc-service-common</module>
 		<module>../omc-test-service</module>
+		<module>../omc-collector-service</module>
 	</modules>
 	<build>
 		<pluginManagement>
