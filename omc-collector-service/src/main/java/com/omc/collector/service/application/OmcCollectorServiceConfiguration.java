@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.domain.OmcEvent;
@@ -47,6 +48,18 @@ public class OmcCollectorServiceConfiguration {
 
 	@Value("${omc.service.discovery.mode:}")
 	private String discoveryMode;
+
+	@Value("${omc.collector.service.timestamp.regex}")
+	private String timestampRegex;
+
+	@Value("${omc.collector.service.timestamp.format}")
+	private String timestampFormat;
+
+	@Value("${omc.collector.service.quotecharacter}")
+	private char quoteCharacter;
+
+	@Value("${omc.collector.service.whitespace}")
+	private char whiteSpace;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
 
@@ -89,6 +102,11 @@ public class OmcCollectorServiceConfiguration {
 			return OmcZookeeperServiceRegistry();
 		}
 		return null;
+    }
+
+	@Bean
+    public OmcCollectorServiceManager omcCollectorServiceManager() {
+		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, whiteSpace, obname);
     }
 
 	@Bean

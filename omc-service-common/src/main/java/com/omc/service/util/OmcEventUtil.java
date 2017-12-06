@@ -23,8 +23,10 @@ public class OmcEventUtil {
 
 	public static void updateObserverDeliveryState(OmcEvent omcEvent, ResponseState rs) {
 		List<OmcObserver> observers = omcEvent.getObservers();
-		OmcObserver currentObserver = observers.get(observers.size() - 1);
-		currentObserver.setOuttime(System.currentTimeMillis());
-		currentObserver.setRs(rs);
+		if(observers.size() > 0) {
+			OmcObserver currentObserver = observers.get(observers.size() - 1);
+			currentObserver.setOuttime(System.currentTimeMillis());
+			currentObserver.setRs(rs);
+		}
 	}
 }

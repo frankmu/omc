@@ -2,8 +2,6 @@ package com.omc.collector.service.controller;
 
 import java.util.concurrent.BlockingQueue;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,13 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.exception.OmcRequestQueueFullException;
-import com.omc.service.util.OmcEventUtil;
 
 @RestController
 public class OmcCollectorServiceController {
 
 	@Autowired
-	BlockingQueue<OmcEvent> requestQueue;
+	BlockingQueue<String> requestQueue;
 
 	@Autowired
 	BlockingQueue<OmcEvent> deliveryQueue;
@@ -38,12 +35,11 @@ public class OmcCollectorServiceController {
 
 	@CrossOrigin
 	@RequestMapping(value = "/go", method = RequestMethod.POST)
-	public boolean callOmcCommonService(@Valid @RequestBody OmcEvent omcEvent) throws OmcRequestQueueFullException {
+	public boolean callOmcCollectorService(@RequestBody String message) throws OmcRequestQueueFullException {
 		if(requestQueue.remainingCapacity() == 0) {
 			throw new OmcRequestQueueFullException("Request queue is full, please try again later.");
 		}
-		OmcEventUtil.appendCurrentObserver(omcEvent, omcObserverState.getObname());
-		requestQueue.add(omcEvent);
+		requestQueue.add(message);
 		return true;
 	}
 }

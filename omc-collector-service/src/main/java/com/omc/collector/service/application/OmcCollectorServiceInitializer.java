@@ -18,6 +18,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import com.omc.collector.service.processor.OmcCollectorServiceDeliveryTask;
+import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.collector.service.processor.OmcCollectorServiceRequestTask;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
@@ -71,11 +72,14 @@ public class OmcCollectorServiceInitializer {
 	@Autowired
 	OmcObserverState omcObserverState;
 
+	@Autowired
+	OmcCollectorServiceManager omcCollectorServiceManager;
+
 	@PostConstruct
 	public void init() throws UnknownHostException {
 		// Start the worker threads
 		for(int i = 0; i < requestTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcCollectorServiceRequestTask(requestQueue, deliveryQueue));
+			workerExecutor.execute(new OmcCollectorServiceRequestTask(requestQueue, deliveryQueue, omcCollectorServiceManager));
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
