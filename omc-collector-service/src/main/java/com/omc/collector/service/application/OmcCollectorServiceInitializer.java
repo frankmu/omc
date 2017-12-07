@@ -22,17 +22,12 @@ import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.collector.service.processor.OmcCollectorServiceRequestTask;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverProperties;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
 
 @Component
 public class OmcCollectorServiceInitializer {
-
-	@Value("${omc.obname}")
-	private String obname;
-
-	@Value("${server.port}")
-	private String serverPort;
 
 	@Value("${omc.service.registry.name:}")
 	private String omcServiceRegistryName;
@@ -50,6 +45,9 @@ public class OmcCollectorServiceInitializer {
 	private int deliveryRetryCount;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
+
+	@Autowired
+	OmcObserverProperties omcObserverProperties;
 
 	@Autowired
 	OmcServiceRegistry omcServiceRegistry;
@@ -88,7 +86,7 @@ public class OmcCollectorServiceInitializer {
 
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			String uri = hostname + ":" + omcObserverProperties.getServerPort() + servletContext.getContextPath();
 			omcServiceRegistry.registerService(omcServiceRegistryName, uri);
 			logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
@@ -98,7 +96,7 @@ public class OmcCollectorServiceInitializer {
 	public void destroy() throws UnknownHostException {
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			String uri = hostname + ":" + omcObserverProperties.getServerPort() + servletContext.getContextPath();
 			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
@@ -106,6 +104,6 @@ public class OmcCollectorServiceInitializer {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void doSomethingAfterStartup() {
-		logger.info("Service " + obname + " has been started successfully!");
+		logger.info("Service " + omcObserverProperties.getObname() + " has been started successfully!");
 	}
 }

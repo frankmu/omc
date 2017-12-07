@@ -1,7 +1,5 @@
 package com.omc.test.service.application;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,6 +15,7 @@ import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.discovery.OmcDNSServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverProperties;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
 import com.omc.service.registration.OmcServiceRegistry.RegistryMode;
@@ -28,6 +27,9 @@ public class OmcTestServiceConfiguration {
 
 	@Value("${omc.service.name}")
 	private String serviceName;
+
+	@Value("${server.port:0}")
+	private int serverPort;
 
 	@Value("${omc.request.queue.max.size}")
 	private int MaxRQSize;
@@ -53,39 +55,28 @@ public class OmcTestServiceConfiguration {
 	@Value("${omc.service.discovery.mode}")
 	private String discoveryMode;
 
-	@Value("${server.port:0}")
-	private int serverPort;
-
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Bean
     public EmbeddedServletContainerCustomizer containerCustomizer() {
         return (container -> {
-            container.setPort(containerServerPort());
+            container.setPort(omcObserverProperties().getServerPort());
         });
     }
 
 	@Bean
-    public Integer containerServerPort() {
-		if(serverPort > 0 && serverPort < 65535) {
-			return serverPort;
-		}
-        return OmcCommonUtil.getRandomServerPort();
+    public OmcObserverProperties omcObserverProperties() {
+		OmcObserverProperties omcObserverProperties = new OmcObserverProperties();
+		omcObserverProperties.setServiceName(serviceName);
+		omcObserverProperties.setHostName(OmcCommonUtil.getHostName());
+		omcObserverProperties.setServerPort(OmcCommonUtil.getRandomServerPort(serverPort));
+		omcObserverProperties.setObname();
+		return omcObserverProperties;
     }
 
 	@Bean
-    public String obname() {
-		try {
-			return serviceName + "-" + InetAddress.getLocalHost().getHostName() + "-" + containerServerPort();
-		} catch (UnknownHostException e) {
-			logger.error("Cannot get local host: " + e.getMessage());
-			return serviceName + "-UnknownHost-" + containerServerPort();
-		}
-	}
-
-	@Bean
     public OmcObserverState omcObserverState() {
-        return new OmcObserverState(obname(), MaxRQSize, MaxDQSize);
+        return new OmcObserverState(omcObserverProperties().getObname(), MaxRQSize, MaxDQSize);
     }
 
 	@Bean

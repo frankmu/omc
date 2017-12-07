@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -14,16 +15,21 @@ import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverProperties;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
 import com.omc.service.registration.OmcServiceRegistry.RegistryMode;
+import com.omc.service.util.OmcCommonUtil;
 import com.omc.service.zookeeper.OmcZookeeperServiceRegistry;
 
 @Configuration
 public class OmcCollectorServiceConfiguration {
 
-	@Value("${omc.obname}")
-	private String obname;
+	@Value("${omc.service.name}")
+	private String serviceName;
+
+	@Value("${server.port:0}")
+	private int serverPort;
 
 	@Value("${omc.request.queue.max.size}")
 	private int MaxRQSize;
@@ -64,8 +70,25 @@ public class OmcCollectorServiceConfiguration {
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
 
 	@Bean
+    public EmbeddedServletContainerCustomizer containerCustomizer() {
+        return (container -> {
+            container.setPort(omcObserverProperties().getServerPort());
+        });
+    }
+
+	@Bean
+    public OmcObserverProperties omcObserverProperties() {
+		OmcObserverProperties omcObserverProperties = new OmcObserverProperties();
+		omcObserverProperties.setServiceName(serviceName);
+		omcObserverProperties.setHostName(OmcCommonUtil.getHostName());
+		omcObserverProperties.setServerPort(OmcCommonUtil.getRandomServerPort(serverPort));
+		omcObserverProperties.setObname();
+		return omcObserverProperties;
+    }
+
+	@Bean
     public OmcObserverState omcObserverState() {
-        return new OmcObserverState(obname, MaxRQSize, MaxDQSize);
+        return new OmcObserverState(omcObserverProperties().getObname(), MaxRQSize, MaxDQSize);
     }
 
 	@Bean
@@ -106,7 +129,7 @@ public class OmcCollectorServiceConfiguration {
 
 	@Bean
     public OmcCollectorServiceManager omcCollectorServiceManager() {
-		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, whiteSpace, obname);
+		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, whiteSpace, omcObserverProperties().getObname());
     }
 
 	@Bean

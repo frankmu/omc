@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcObserverProperties;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.registration.OmcServiceRegistry;
 import com.omc.test.service.processor.OmcTestServiceDeliveryTask;
@@ -45,10 +46,7 @@ public class OmcTestServiceInitializer {
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
 
 	@Autowired
-	Integer containerServerPort;
-
-	@Autowired
-	String obname;
+	OmcObserverProperties omcObserverProperties;
 
 	@Autowired
 	OmcServiceRegistry omcServiceRegistry;
@@ -84,7 +82,7 @@ public class OmcTestServiceInitializer {
 
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + containerServerPort + servletContext.getContextPath();
+			String uri = hostname + ":" + omcObserverProperties.getServerPort() + servletContext.getContextPath();
 			omcServiceRegistry.registerService(omcServiceRegistryName, uri);
 			logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
@@ -94,7 +92,7 @@ public class OmcTestServiceInitializer {
 	public void destroy() throws UnknownHostException {
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + containerServerPort + servletContext.getContextPath();
+			String uri = hostname + ":" + omcObserverProperties.getServerPort() + servletContext.getContextPath();
 			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
@@ -102,6 +100,6 @@ public class OmcTestServiceInitializer {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void doSomethingAfterStartup() {
-		logger.info("Service " + obname + " has been started successfully!");
+		logger.info("Service " + omcObserverProperties.getObname() + " has been started successfully!");
 	}
 }
