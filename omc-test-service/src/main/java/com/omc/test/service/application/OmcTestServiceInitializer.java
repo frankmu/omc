@@ -95,6 +95,8 @@ public class OmcTestServiceInitializer {
 			String uri = hostname + ":" + omcObserverProperties.getServerPort() + servletContext.getContextPath();
 			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
+			omcServiceRegistry.close();
+			logger.debug("Close Service Registry!");
 		}
 	}
 
