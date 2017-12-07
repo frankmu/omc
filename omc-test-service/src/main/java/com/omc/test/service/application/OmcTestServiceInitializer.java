@@ -27,12 +27,6 @@ import com.omc.test.service.processor.OmcTestServiceRequestTask;
 @Component
 public class OmcTestServiceInitializer {
 
-	@Value("${omc.obname}")
-	private String obname;
-
-	@Value("${server.port}")
-	private String serverPort;
-
 	@Value("${omc.service.registry.name}")
 	private String omcServiceRegistryName;
 
@@ -49,6 +43,12 @@ public class OmcTestServiceInitializer {
 	private int deliveryRetryCount;
 
 	private final Log logger = LogFactory.getLog(OmcTestServiceConfiguration.class);
+
+	@Autowired
+	Integer containerServerPort;
+
+	@Autowired
+	String obname;
 
 	@Autowired
 	OmcServiceRegistry omcServiceRegistry;
@@ -84,7 +84,7 @@ public class OmcTestServiceInitializer {
 
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			String uri = hostname + ":" + containerServerPort + servletContext.getContextPath();
 			omcServiceRegistry.registerService(omcServiceRegistryName, uri);
 			logger.debug("Register service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
@@ -94,7 +94,7 @@ public class OmcTestServiceInitializer {
 	public void destroy() throws UnknownHostException {
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
-			String uri = hostname + ":" + serverPort + servletContext.getContextPath();
+			String uri = hostname + ":" + containerServerPort + servletContext.getContextPath();
 			omcServiceRegistry.unregisterService(omcServiceRegistryName, uri);
 			logger.debug("Unregister service with path: " + omcServiceRegistryName + ", value: " + uri);
 		}
