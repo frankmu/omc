@@ -2,14 +2,11 @@ package com.omc.collector.service.controller;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -19,17 +16,6 @@ import com.omc.service.exception.OmcRequestQueueFullException;
 public class OmcCollectorServiceExceptionHandlingController {
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceExceptionHandlingController.class);
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionResponse> invalidInput(MethodArgumentNotValidException ex) {
-        BindingResult result = ex.getBindingResult();
-        ExceptionResponse response = new ExceptionResponse();
-        response.setErrorCode("Validation Error");
-        response.setErrorMessage("Invalid inputs.");
-        response.setErrors(result.getAllErrors().stream().map(error -> error.getDefaultMessage()).collect(Collectors.toList()));
-        logger.debug("Get an invalid request: " + response.getErrorMessage());
-        return new ResponseEntity<ExceptionResponse>(response, HttpStatus.BAD_REQUEST);
-    }
 
     @ExceptionHandler(OmcRequestQueueFullException.class)
     public ResponseEntity<ExceptionResponse> requestIsFull(OmcRequestQueueFullException ex) {
