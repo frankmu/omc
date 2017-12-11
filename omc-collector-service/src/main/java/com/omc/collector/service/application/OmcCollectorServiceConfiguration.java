@@ -135,7 +135,8 @@ public class OmcCollectorServiceConfiguration {
 	@Bean
 	public ThreadPoolTaskExecutor workerExecutor() {
 		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-		int totalThreadSize = requestTaskThreadSize + deliveryTaskThreadSize;
+		// add 1 for read standard input from shell command
+		int totalThreadSize = requestTaskThreadSize + deliveryTaskThreadSize + 1;
 		pool.setCorePoolSize(totalThreadSize);
 		pool.setThreadNamePrefix("OMC-Worker-");
 		pool.setWaitForTasksToCompleteOnShutdown(true);
