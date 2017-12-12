@@ -28,6 +28,9 @@ public class OmcTestServiceRequestTask extends OmcTask {
 				logger.debug("Get task from Request Queue: " + omcEvent.toString());
 				Thread.sleep(5000);
 				deliveryQueue.put(omcEvent);
+			} catch (InterruptedException e) {
+				logger.error("Thread was interrupted!");
+				break;
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}

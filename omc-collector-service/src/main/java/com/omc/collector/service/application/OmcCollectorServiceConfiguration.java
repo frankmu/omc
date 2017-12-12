@@ -139,7 +139,6 @@ public class OmcCollectorServiceConfiguration {
 		int totalThreadSize = requestTaskThreadSize + deliveryTaskThreadSize + 1;
 		pool.setCorePoolSize(totalThreadSize);
 		pool.setThreadNamePrefix("OMC-Worker-");
-		pool.setWaitForTasksToCompleteOnShutdown(true);
 		logger.debug("Initialize Worker Executor with pool size: " + totalThreadSize);
 		return pool;
 	}

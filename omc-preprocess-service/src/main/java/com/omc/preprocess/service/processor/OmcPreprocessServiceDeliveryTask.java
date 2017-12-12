@@ -51,6 +51,9 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 				}
 			} catch (InterruptedException e) {
 				logger.error("Thread was interrupted!");
+				break;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
 			}
 		}
 		logger.debug("Delivery Queue worker thread stopped!");

@@ -32,6 +32,9 @@ public class OmcPreprocessServiceRequestTask extends OmcTask{
 				Thread.sleep(5000);
 				OmcEvent result = process(omcEvent);
 				deliveryQueue.put(result);
+			} catch (InterruptedException e) {
+				logger.error("Thread was interrupted!");
+				break;
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}

@@ -39,6 +39,9 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 				Thread.sleep(5000);
 				OmcEvent result = process(message);
 				deliveryQueue.put(result);
+			} catch (InterruptedException e) {
+				logger.error("Thread was interrupted!");
+				break;
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}
