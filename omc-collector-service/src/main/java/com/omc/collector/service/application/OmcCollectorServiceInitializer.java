@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -77,6 +78,9 @@ public class OmcCollectorServiceInitializer {
 	@Autowired
 	OmcCollectorServiceManager omcCollectorServiceManager;
 
+	@Autowired
+	private ConfigurableApplicationContext context;
+
 	@PostConstruct
 	public void init() throws UnknownHostException {
 		// Start the worker threads
@@ -88,7 +92,7 @@ public class OmcCollectorServiceInitializer {
 			workerExecutor.execute(new OmcCollectorServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount));
 		}
 
-		workerExecutor.execute(new OmcCollectorServiceShellCommandTask(requestQueue, shellCommand));
+		workerExecutor.execute(new OmcCollectorServiceShellCommandTask(requestQueue, shellCommand, context));
 
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
