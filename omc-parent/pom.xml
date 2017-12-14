@@ -19,6 +19,7 @@
 	</properties>
 	<modules>
 		<module>../omc-service-common</module>
+		<module>../omc-geode-service</module>
 		<module>../omc-test-service</module>
 		<module>../omc-collector-service</module>
 		<module>../omc-preprocess-service-client</module>

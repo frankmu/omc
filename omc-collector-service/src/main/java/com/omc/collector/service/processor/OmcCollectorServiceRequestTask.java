@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.omc.collector.service.util.OmcCollectorServiceUtils;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcEventConstant;
 import com.omc.service.domain.OmcObserver;
 
 public class OmcCollectorServiceRequestTask implements Runnable{
@@ -78,12 +79,12 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			omcEvent.setEventid(OmcCollectorServiceUtils.generateEventId(this.omcCollectorServiceManager.getObname()));
 			omcEvent.setObservers(new ArrayList<OmcObserver>());
 			Map<String, Object> eventData = new HashMap<String, Object>();
-			eventData.put(OmcCollectorServiceManager.EVENT_AGENT, this.omcCollectorServiceManager.getObname());
-			eventData.put(OmcCollectorServiceManager.EVENT_CLASS, "Syslog");
-			eventData.put(OmcCollectorServiceManager.EVENT_COUNT, tokens.size());
-			eventData.put(OmcCollectorServiceManager.EVENT_TIME, OmcCollectorServiceUtils.getFormattedTimestamp(timestamp, this.omcCollectorServiceManager.getTimestampFormat()));
+			eventData.put(OmcEventConstant.EVENT_AGENT, this.omcCollectorServiceManager.getObname());
+			eventData.put(OmcEventConstant.EVENT_CLASS, "Syslog");
+			eventData.put(OmcEventConstant.EVENT_COUNT, tokens.size());
+			eventData.put(OmcEventConstant.EVENT_TIME, OmcCollectorServiceUtils.getFormattedTimestamp(timestamp, this.omcCollectorServiceManager.getTimestampFormat()));
 			for(int i = 1; i <= tokens.size(); i++) {
-				eventData.put(OmcCollectorServiceManager.EVENT_TOKEN_PREFIX + i, tokens.get(i - 1));
+				eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + i, tokens.get(i - 1));
 			}
 			omcEvent.setData(eventData);
 			logger.debug("Create OmcEvent: " + omcEvent.toString());

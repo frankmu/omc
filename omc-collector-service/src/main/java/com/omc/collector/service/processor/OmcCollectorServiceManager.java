@@ -1,12 +1,6 @@
 package com.omc.collector.service.processor;
 
 public class OmcCollectorServiceManager {
-	public static String EVENT_AGENT = "event_agent";
-	public static String EVENT_CLASS = "event_class";
-	public static String EVENT_TOKEN_PREFIX = "event_token";
-	public static String EVENT_COUNT = "event_count";
-	public static String EVENT_TIME = "event_time";
-
 	private String obname;
 	private String timestampRegex;
 	private String timestampFormat;

@@ -8,6 +8,6 @@ public class SamplePreprocessParser implements OmcPreprocessServiceRules {
 
 	@Override
 	public Map<String, Object> parse(Map<String, Object> data) {
-		return null;
+		return data;
 	}
 }
