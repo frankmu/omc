@@ -39,7 +39,9 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 				logger.debug("Get task from Request Queue: " + message);
 				Thread.sleep(5000);
 				OmcEvent result = process(message);
-				deliveryQueue.put(result);
+				if(result != null) {
+					deliveryQueue.put(result);
+				}
 			} catch (InterruptedException e) {
 				logger.error("Thread was interrupted!");
 				break;
@@ -83,6 +85,7 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			eventData.put(OmcEventConstant.EVENT_CLASS, "Syslog");
 			eventData.put(OmcEventConstant.EVENT_COUNT, tokens.size());
 			eventData.put(OmcEventConstant.EVENT_TIME, OmcCollectorServiceUtils.getFormattedTimestamp(timestamp, this.omcCollectorServiceManager.getTimestampFormat()));
+			eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + "0", targetMessage);
 			for(int i = 1; i <= tokens.size(); i++) {
 				eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + i, tokens.get(i - 1));
 			}
