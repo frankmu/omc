@@ -8,6 +8,6 @@ public interface OmcAlertService {
 
 	OmcGeodeServiceResult createAlertOrigin(String key, OmcAlertOrigin omcAlertOrigin);
 
-	OmcGeodeServiceResult createAlertDetails(String key, OmcAlertDetail omcAlertDetail);
+	OmcGeodeServiceResult createAlertDetail(String key, OmcAlertDetail omcAlertDetail);
 
 }

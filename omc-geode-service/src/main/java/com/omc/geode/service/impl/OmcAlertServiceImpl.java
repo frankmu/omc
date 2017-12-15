@@ -14,8 +14,8 @@ public class OmcAlertServiceImpl extends OmcGeodeBaseService implements OmcAlert
 
 	private final Log logger = LogFactory.getLog(OmcAlertServiceImpl.class);
 
-	public OmcAlertServiceImpl(String url, String apiName, String apiVersion, RestTemplate restTemplate) {
-		super(url, apiName, apiVersion, restTemplate);
+	public OmcAlertServiceImpl(String restUrl, String alertOriginRegion, String alertDetailRegion, RestTemplate restTemplate) {
+		super(restUrl, alertOriginRegion, alertDetailRegion, restTemplate);
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class OmcAlertServiceImpl extends OmcGeodeBaseService implements OmcAlert
 	}
 
 	@Override
-	public OmcGeodeServiceResult createAlertDetails(String key, OmcAlertDetail omcAlertDetail) {
+	public OmcGeodeServiceResult createAlertDetail(String key, OmcAlertDetail omcAlertDetail) {
 		String url = getRegionRestUrl(this.alertDetailRegion) + key;
 		logger.debug("Send post request to: " + url + " with data: " + omcAlertDetail.toJson());
 		ResponseEntity<String> response = this.restTemplate.postForEntity(url, omcAlertDetail, String.class);
