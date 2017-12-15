@@ -28,22 +28,15 @@ public class OmcCollectorServiceShellCommandTask implements Runnable {
 		logger.debug("Starting Shell Command worker thread");
 		try {
 			Process p = Runtime.getRuntime().exec(shellCommand);
-			int exitCode = p.waitFor();
-            if (exitCode != 0) {
-                throw new IOException("Command " + shellCommand + " exited with " + exitCode);
-            }
 			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
-			while (true) {
-				line = reader.readLine();
-				if (line == null) {
-					// wait until there is more of the file for us to read
-					Thread.sleep(1000);
-				} else {
-					// do something interesting with the line
-					this.requestQueue.put(line);
-					logger.debug("Get message from shell command: " + line);
-				}
+			while ((line = reader.readLine()) != null) {
+				// do something interesting with the line
+				this.requestQueue.put(line);
+				logger.debug("Get message from shell command: " + line);
+			}
+			if (p.exitValue() != 0) {
+				throw new IOException("Command " + shellCommand + " exited with " + p.exitValue());
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
