@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import com.omc.geode.service.api.OmcAlertService;
 import com.omc.geode.service.impl.OmcAlertServiceImpl;
 import com.omc.preprocess.service.client.rule.OmcPreprocessServiceRules;
+import com.omc.service.discovery.OmcDNSServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.domain.OmcEvent;
@@ -131,6 +132,8 @@ public class OmcPreprocessServiceConfiguration {
     public OmcServiceDiscovery omcServiceDiscovery() {
 		if(DiscoveryMode.ZOOKEEPER.toString().equalsIgnoreCase(discoveryMode)) {
 			return OmcZookeeperServiceRegistry();
+		} else if(DiscoveryMode.DNS.toString().equalsIgnoreCase(discoveryMode)) {
+			return new OmcDNSServiceDiscovery();
 		}
 		return null;
     }
