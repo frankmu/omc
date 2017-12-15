@@ -1,5 +1,6 @@
 package com.omc.preprocess.service.processor;
 
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
@@ -42,6 +43,8 @@ public class OmcPreprocessServiceRequestTask extends OmcTask{
 	}
 
 	private OmcEvent process(OmcEvent omcEvent) {
+		Map<String, Object> data = omcPreprocessServiceRules.parse(omcEvent.getData());
+		omcEvent.setData(data);
 		return omcEvent;
 	}
 }

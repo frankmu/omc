@@ -4,9 +4,11 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.web.client.RestTemplate;
 
-import com.omc.service.discovery.OmcServiceDiscovery;
+import com.omc.geode.service.api.OmcAlertService;
+import com.omc.geode.service.domain.OmcGeodeServiceResult;
+import com.omc.service.domain.OmcAlertDetail;
+import com.omc.service.domain.OmcAlertOrigin;
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.domain.OmcObserver.ResponseState;
@@ -15,23 +17,19 @@ import com.omc.service.util.OmcEventUtil;
 
 public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 
-	private static String EMPTY_DELIVERY_MODE="none";
 	private final Log logger = LogFactory.getLog(OmcPreprocessServiceDeliveryTask.class);
-	private OmcServiceDiscovery omcServiceDiscovery;
-	private String deliveryMode;
 	private OmcObserverState omcObserverState;
 	private int deliveryRetryCount;
+	private OmcAlertService omcAlertService;
 
 	public OmcPreprocessServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, 
-			OmcServiceDiscovery omcServiceDiscovery,
-			String deliveryMode,
 			OmcObserverState omcObserverState,
-			int deliveryRetryCount) {
+			int deliveryRetryCount,
+			OmcAlertService omcAlertService) {
 		super(deliveryQueue);
-		this.omcServiceDiscovery = omcServiceDiscovery;
-		this.deliveryMode = deliveryMode;
 		this.omcObserverState = omcObserverState;
 		this.deliveryRetryCount = deliveryRetryCount;
+		this.omcAlertService = omcAlertService;
 	}
 
 	@Override
@@ -64,10 +62,13 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 		while(retryCount <= deliveryRetryCount) {
 			try {
 				Thread.sleep(5000);
-				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
-					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
-					RestTemplate restTemplate = new RestTemplate();
-					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
+				OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
+				OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
+				if(!detailResult.isSuccessful()) {
+					throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
+				}
+				if(!originResult.isSuccessful()) {
+					throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
 				}
 				return true;
 			} catch (Exception e) {

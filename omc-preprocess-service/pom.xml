@@ -23,6 +23,11 @@
 			<version>${omc.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>omc</groupId>
+			<artifactId>omc-geode-service</artifactId>
+			<version>${omc.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<version>${springboot.version}</version>

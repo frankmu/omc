@@ -12,7 +12,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestTemplate;
 
+import com.omc.geode.service.api.OmcAlertService;
+import com.omc.geode.service.impl.OmcAlertServiceImpl;
 import com.omc.preprocess.service.client.rule.OmcPreprocessServiceRules;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
@@ -59,6 +62,15 @@ public class OmcPreprocessServiceConfiguration {
 
 	@Value("${omc.preprocess.service.parser.classname}")
 	private String parserClassname;
+
+	@Value("${omc.geode.rest.url}")
+	private String geodeRestUrl;
+
+	@Value("${omc.geode.region.alert.origin}")
+	private String geodeRegionAlertOrigin;
+
+	@Value("${omc.geode.region.alert.detail}")
+	private String geodeRegionAlertDetail;
 
 	@Autowired
 	private ConfigurableApplicationContext ctx;
@@ -142,5 +154,15 @@ public class OmcPreprocessServiceConfiguration {
 			ctx.close();
 			return null;
 		}
+	}
+
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
+	}
+
+	@Bean
+	public OmcAlertService omcAlertService() {
+		return new OmcAlertServiceImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail, restTemplate());
 	}
 }

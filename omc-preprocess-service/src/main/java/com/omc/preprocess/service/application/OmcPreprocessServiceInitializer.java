@@ -17,6 +17,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import com.omc.geode.service.api.OmcAlertService;
 import com.omc.preprocess.service.client.rule.OmcPreprocessServiceRules;
 import com.omc.preprocess.service.processor.OmcPreprocessServiceDeliveryTask;
 import com.omc.preprocess.service.processor.OmcPreprocessServiceRequestTask;
@@ -73,6 +74,9 @@ public class OmcPreprocessServiceInitializer {
 	@Autowired
 	OmcPreprocessServiceRules omcPreprocessServiceRules;
 
+	@Autowired
+	OmcAlertService omcAlertService;
+
 	@PostConstruct
 	public void init() throws UnknownHostException {
 		// Start the worker threads
@@ -81,7 +85,7 @@ public class OmcPreprocessServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcPreprocessServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount));
+			workerExecutor.execute(new OmcPreprocessServiceDeliveryTask(deliveryQueue, omcObserverState, deliveryRetryCount, omcAlertService));
 		}
 
 		if(omcServiceRegistry != null) {
