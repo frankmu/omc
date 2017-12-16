@@ -10,6 +10,7 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomi
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.Assert;
 
 import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.service.discovery.OmcDNSServiceDiscovery;
@@ -66,7 +67,7 @@ public class OmcCollectorServiceConfiguration {
 	private char quoteCharacter;
 
 	@Value("${omc.collector.service.whitespace}")
-	private char whiteSpace;
+	private String whiteSpace;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
 
@@ -132,7 +133,15 @@ public class OmcCollectorServiceConfiguration {
 
 	@Bean
     public OmcCollectorServiceManager omcCollectorServiceManager() {
-		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, whiteSpace, omcObserverProperties().getObname());
+		char delimiter;
+		// Only accept single char white space delimiter
+		Assert.isTrue(whiteSpace != null && (whiteSpace.length() == 1 || whiteSpace.length() == 3), "White space charater is not valid.");
+		if(whiteSpace.length() == 1) {
+			delimiter = whiteSpace.charAt(0);
+		} else {
+			delimiter = whiteSpace.charAt(1);
+		}
+		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, delimiter, omcObserverProperties().getObname());
     }
 
 	@Bean
