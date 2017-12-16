@@ -63,7 +63,6 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 		int retryCount = 0;
 		while(retryCount <= deliveryRetryCount) {
 			try {
-				Thread.sleep(5000);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 					RestTemplate restTemplate = new RestTemplate();

@@ -30,7 +30,6 @@ public class OmcPreprocessServiceRequestTask extends OmcTask{
 			try {
 				OmcEvent omcEvent = this.omcQueue.take();
 				logger.debug("Get task from Request Queue: " + omcEvent.toString());
-				Thread.sleep(5000);
 				OmcEvent result = process(omcEvent);
 				deliveryQueue.put(result);
 			} catch (InterruptedException e) {

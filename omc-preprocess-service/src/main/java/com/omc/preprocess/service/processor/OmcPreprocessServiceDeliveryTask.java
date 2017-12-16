@@ -61,7 +61,6 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 		int retryCount = 0;
 		while(retryCount <= deliveryRetryCount) {
 			try {
-				Thread.sleep(5000);
 				OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
 				OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
 				if(!detailResult.isSuccessful()) {

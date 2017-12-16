@@ -2,7 +2,9 @@ package com.omc.geode.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,12 +20,15 @@ public abstract class OmcGeodeBaseService {
 	String alertOriginRegion;
 	String alertDetailRegion;
 	RestTemplate restTemplate;
+	HttpHeaders headers;
 
 	public OmcGeodeBaseService(String restUrl, String alertOriginRegion, String alertDetailRegion, RestTemplate restTemplate) {
 		this.restUrl = restUrl;
 		this.alertOriginRegion = alertOriginRegion;
 		this.alertDetailRegion = alertDetailRegion;
 		this.restTemplate = restTemplate;
+		this.headers = new HttpHeaders();
+		this.headers.setContentType(MediaType.APPLICATION_JSON);
 	}
 
 	String getRegionRestUrl(String regionName) {

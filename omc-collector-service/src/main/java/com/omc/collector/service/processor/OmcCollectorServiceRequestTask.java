@@ -37,7 +37,6 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			try {
 				String message = this.requestQueue.take();
 				logger.debug("Get task from Request Queue: " + message);
-				Thread.sleep(5000);
 				OmcEvent result = process(message);
 				if(result != null) {
 					deliveryQueue.put(result);

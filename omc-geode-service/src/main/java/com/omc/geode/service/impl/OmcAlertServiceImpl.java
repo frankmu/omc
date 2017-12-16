@@ -2,6 +2,7 @@ package com.omc.geode.service.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,7 +23,8 @@ public class OmcAlertServiceImpl extends OmcGeodeBaseService implements OmcAlert
 	public OmcGeodeServiceResult createAlertOrigin(String key, OmcAlertOrigin omcAlertOrigin) {
 		String url = getRegionRestUrl(this.alertOriginRegion) + key;
 		logger.debug("Send post request to: " + url + " with data: " + omcAlertOrigin.toJson());
-		ResponseEntity<String> response = this.restTemplate.postForEntity(url, omcAlertOrigin, String.class);
+		HttpEntity<String> entity = new HttpEntity<String>(omcAlertOrigin.toJson(), this.headers);
+		ResponseEntity<String> response = this.restTemplate.postForEntity(url, entity, String.class);
 		return getOmcGeodeServiceResult(response);
 	}
 
@@ -30,7 +32,8 @@ public class OmcAlertServiceImpl extends OmcGeodeBaseService implements OmcAlert
 	public OmcGeodeServiceResult createAlertDetail(String key, OmcAlertDetail omcAlertDetail) {
 		String url = getRegionRestUrl(this.alertDetailRegion) + key;
 		logger.debug("Send post request to: " + url + " with data: " + omcAlertDetail.toJson());
-		ResponseEntity<String> response = this.restTemplate.postForEntity(url, omcAlertDetail, String.class);
+		HttpEntity<String> entity = new HttpEntity<String>(omcAlertDetail.toJson(), this.headers);
+		ResponseEntity<String> response = this.restTemplate.postForEntity(url, entity, String.class);
 		return getOmcGeodeServiceResult(response);
 	}
 }
