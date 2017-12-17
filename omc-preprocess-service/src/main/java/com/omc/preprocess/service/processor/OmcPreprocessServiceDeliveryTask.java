@@ -17,19 +17,23 @@ import com.omc.service.util.OmcEventUtil;
 
 public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 
+	private static String EMPTY_DELIVERY_MODE="none";
 	private final Log logger = LogFactory.getLog(OmcPreprocessServiceDeliveryTask.class);
 	private OmcObserverState omcObserverState;
 	private int deliveryRetryCount;
 	private OmcAlertService omcAlertService;
+	private String deliveryMode;
 
 	public OmcPreprocessServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, 
 			OmcObserverState omcObserverState,
 			int deliveryRetryCount,
-			OmcAlertService omcAlertService) {
+			OmcAlertService omcAlertService,
+			String deliveryMode) {
 		super(deliveryQueue);
 		this.omcObserverState = omcObserverState;
 		this.deliveryRetryCount = deliveryRetryCount;
 		this.omcAlertService = omcAlertService;
+		this.deliveryMode = deliveryMode;
 	}
 
 	@Override
@@ -41,7 +45,6 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				if (process(omcEvent)) {
 					omcObserverState.incrementSuccCount();
-					OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 					logger.debug("Successfully deliveried event: " + omcEvent.toString());
 				} else {
 					logger.debug("Exceeded max retry count, delivery service error!");
@@ -61,13 +64,16 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 		int retryCount = 0;
 		while(retryCount <= deliveryRetryCount) {
 			try {
-				OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
-				OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
-				if(!detailResult.isSuccessful()) {
-					throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
-				}
-				if(!originResult.isSuccessful()) {
-					throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
+				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
+				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
+					OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
+					OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
+					if(!detailResult.isSuccessful()) {
+						throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
+					}
+					if(!originResult.isSuccessful()) {
+						throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
+					}
 				}
 				return true;
 			} catch (Exception e) {

@@ -43,7 +43,6 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
 				if (process(omcEvent)) {
 					omcObserverState.incrementSuccCount();
-					OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 					logger.debug("Successfully deliveried event: " + omcEvent.toString());
 				} else {
 					logger.debug("Exceeded max retry count, delivery service error!");
@@ -63,6 +62,7 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 		int retryCount = 0;
 		while(retryCount <= deliveryRetryCount) {
 			try {
+				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 					RestTemplate restTemplate = new RestTemplate();

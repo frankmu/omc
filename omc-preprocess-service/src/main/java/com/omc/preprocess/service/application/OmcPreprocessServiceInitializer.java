@@ -85,7 +85,7 @@ public class OmcPreprocessServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcPreprocessServiceDeliveryTask(deliveryQueue, omcObserverState, deliveryRetryCount, omcAlertService));
+			workerExecutor.execute(new OmcPreprocessServiceDeliveryTask(deliveryQueue, omcObserverState, deliveryRetryCount, omcAlertService, deliveryMode));
 		}
 
 		if(omcServiceRegistry != null) {
