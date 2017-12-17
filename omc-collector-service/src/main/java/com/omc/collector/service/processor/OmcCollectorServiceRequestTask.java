@@ -15,19 +15,23 @@ import com.omc.collector.service.util.OmcCollectorServiceUtils;
 import com.omc.service.domain.OmcEvent;
 import com.omc.service.domain.OmcEventConstant;
 import com.omc.service.domain.OmcObserver;
+import com.omc.service.domain.OmcObserverState;
+import com.omc.service.util.OmcEventUtil;
 
 public class OmcCollectorServiceRequestTask implements Runnable{
 	
 	private BlockingQueue<String> requestQueue;
 	private BlockingQueue<OmcEvent> deliveryQueue;
 	private OmcCollectorServiceManager omcCollectorServiceManager;
+	private OmcObserverState omcObserverState;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceRequestTask.class);
 
-	public OmcCollectorServiceRequestTask(BlockingQueue<String> requestQueue, BlockingQueue<OmcEvent> deliveryQueue, OmcCollectorServiceManager omcCollectorServiceManager) {
+	public OmcCollectorServiceRequestTask(BlockingQueue<String> requestQueue, BlockingQueue<OmcEvent> deliveryQueue, OmcCollectorServiceManager omcCollectorServiceManager, OmcObserverState omcObserverState) {
 		this.requestQueue = requestQueue;
 		this.deliveryQueue = deliveryQueue;
 		this.omcCollectorServiceManager = omcCollectorServiceManager;
+		this.omcObserverState = omcObserverState;
 	}
 
 	@Override
@@ -67,8 +71,7 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 				if (atLastChar) {
 					tokens.add(targetMessage.substring(start)
 							.replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), ""));
-				} else if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getWhiteSpace()
-						&& !inQuotes) {
+				} else if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getWhiteSpace() && !inQuotes) {
 					tokens.add(targetMessage.substring(start, current)
 							.replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), ""));
 					start = current + 1;
@@ -82,13 +85,14 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			Map<String, Object> eventData = new HashMap<String, Object>();
 			eventData.put(OmcEventConstant.EVENT_AGENT, this.omcCollectorServiceManager.getObname());
 			eventData.put(OmcEventConstant.EVENT_CLASS, "Syslog");
-			eventData.put(OmcEventConstant.EVENT_COUNT, tokens.size());
+			eventData.put(OmcEventConstant.EVENT_COUNT, tokens.size() + 1);
 			eventData.put(OmcEventConstant.EVENT_TIME, OmcCollectorServiceUtils.getFormattedTimestamp(timestamp, this.omcCollectorServiceManager.getTimestampFormat()));
-			eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + "0", targetMessage);
+			eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + "0", message);
 			for(int i = 1; i <= tokens.size(); i++) {
 				eventData.put(OmcEventConstant.EVENT_TOKEN_PREFIX + i, tokens.get(i - 1));
 			}
 			omcEvent.setData(eventData);
+			OmcEventUtil.appendCurrentObserver(omcEvent, omcObserverState.getObname());
 			logger.debug("Create OmcEvent: " + omcEvent.toString());
 			return omcEvent;
 		} else {

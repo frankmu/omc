@@ -85,7 +85,7 @@ public class OmcCollectorServiceInitializer {
 	public void init() throws UnknownHostException {
 		// Start the worker threads
 		for(int i = 0; i < requestTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcCollectorServiceRequestTask(requestQueue, deliveryQueue, omcCollectorServiceManager));
+			workerExecutor.execute(new OmcCollectorServiceRequestTask(requestQueue, deliveryQueue, omcCollectorServiceManager, omcObserverState));
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
