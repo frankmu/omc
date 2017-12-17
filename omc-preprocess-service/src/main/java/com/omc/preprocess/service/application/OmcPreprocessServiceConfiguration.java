@@ -151,7 +151,7 @@ public class OmcPreprocessServiceConfiguration {
 	@Bean
 	public OmcPreprocessServiceRules omcPreprocessServiceRules() {
 		try {
-			return (OmcPreprocessServiceRules) Class.forName(parserClassname).newInstance();
+			return (OmcPreprocessServiceRules) Class.forName( parserClassname).newInstance();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			logger.error("No available parser class found in classpath. " + e.getMessage());
 			ctx.close();
