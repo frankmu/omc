@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class OmcAlertDetail {
 
@@ -26,6 +27,7 @@ public class OmcAlertDetail {
 		    		json.put(key.replaceFirst(OmcEventConstant.EVENT_PREFIX, ""), entry.getValue());
 		    }
 		}
-	    return new Gson().toJson(json);
+		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+	    return gson.toJson(json);
 	}
 }

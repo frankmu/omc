@@ -9,6 +9,7 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class OmcEvent {
 
@@ -47,6 +48,7 @@ public class OmcEvent {
 
 	@Override
 	public String toString(){
-	    return new Gson().toJson(this);
+		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+	    return gson.toJson(this);
 	}
 }
