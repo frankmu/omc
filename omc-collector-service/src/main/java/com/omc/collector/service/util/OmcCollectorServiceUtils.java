@@ -23,7 +23,7 @@ public final class OmcCollectorServiceUtils {
 				c.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
 				date = c.getTime();
 			}
-			return date.getTime();
+			return date.getTime() / 1000L;
 		} catch (ParseException e) {
 			logger.error("Cannot convert timestamp: " + timestamp + " using pattern: " + pattern + ". Error: " + e.getMessage());
 			return null;
