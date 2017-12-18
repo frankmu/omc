@@ -69,11 +69,15 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 				}
 				boolean atLastChar = (current == targetMessage.length() - 1);
 				if (atLastChar) {
-					tokens.add(targetMessage.substring(start)
-							.replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), ""));
+					String s = targetMessage.substring(start).replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), "");
+					if(s.length() > 0) {
+						tokens.add(s);
+					}
 				} else if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getWhiteSpace() && !inQuotes) {
-					tokens.add(targetMessage.substring(start, current)
-							.replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), ""));
+					String s = targetMessage.substring(start, current).replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), "");
+					if(s.length() > 0) {
+						tokens.add(s);
+					}
 					start = current + 1;
 				}
 			}

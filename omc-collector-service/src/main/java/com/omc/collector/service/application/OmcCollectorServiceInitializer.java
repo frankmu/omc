@@ -92,7 +92,9 @@ public class OmcCollectorServiceInitializer {
 			workerExecutor.execute(new OmcCollectorServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount));
 		}
 
-		workerExecutor.execute(new OmcCollectorServiceShellCommandTask(requestQueue, shellCommand, context));
+		if(shellCommand != null && shellCommand.length() > 0) {
+			workerExecutor.execute(new OmcCollectorServiceShellCommandTask(requestQueue, shellCommand, context));
+		}
 
 		if(omcServiceRegistry != null) {
 			String hostname = InetAddress.getLocalHost().getHostName();
