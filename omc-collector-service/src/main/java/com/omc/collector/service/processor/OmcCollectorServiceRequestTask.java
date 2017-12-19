@@ -63,10 +63,11 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			String timestamp = m.group(0);
 			String targetMessage = message.replaceAll(timestamp, "").trim();
 			List<String> tokens = new ArrayList<String>();
+			int lastQuoteCharIndex = getLastQuoteCharIndex(targetMessage, this.omcCollectorServiceManager.getQuoteCharacter());
 			int start = 0;
 			boolean inQuotes = false;
 			for (int current = 0; current < targetMessage.length(); current++) {
-				if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getQuoteCharacter()) {
+				if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getQuoteCharacter() && current != lastQuoteCharIndex) {
 					inQuotes = !inQuotes;
 				}
 				boolean atLastChar = (current == targetMessage.length() - 1);
@@ -105,5 +106,17 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			logger.error("Cannot extract timestamp from: " + message + " using regex: " + this.omcCollectorServiceManager.getTimestampRegex());
 			return null;
 		}
+	}
+
+	private int getLastQuoteCharIndex(String message, char quoteChar) {
+		int index = -1;
+		int counter = 0;
+		for (int i = 0; i < message.length(); i++) {
+			if (message.charAt(i) == quoteChar) {
+				index = i;
+				counter++;
+			}
+		}
+		return counter % 2 == 0 ? -1 : index;
 	}
 }
