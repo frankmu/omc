@@ -24,6 +24,7 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 	private BlockingQueue<OmcEvent> deliveryQueue;
 	private OmcCollectorServiceManager omcCollectorServiceManager;
 	private OmcObserverState omcObserverState;
+	private String quoteString;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceRequestTask.class);
 
@@ -32,6 +33,7 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 		this.deliveryQueue = deliveryQueue;
 		this.omcCollectorServiceManager = omcCollectorServiceManager;
 		this.omcObserverState = omcObserverState;
+		this.quoteString = Pattern.quote(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()));
 	}
 
 	@Override
@@ -69,12 +71,12 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 				}
 				boolean atLastChar = (current == targetMessage.length() - 1);
 				if (atLastChar) {
-					String s = targetMessage.substring(start).replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), "");
+					String s = targetMessage.substring(start).replaceAll(this.quoteString, "");
 					if(s.length() > 0) {
 						tokens.add(s);
 					}
 				} else if (targetMessage.charAt(current) == this.omcCollectorServiceManager.getWhiteSpace() && !inQuotes) {
-					String s = targetMessage.substring(start, current).replaceAll(Character.toString(this.omcCollectorServiceManager.getQuoteCharacter()), "");
+					String s = targetMessage.substring(start, current).replaceAll(this.quoteString, "");
 					if(s.length() > 0) {
 						tokens.add(s);
 					}

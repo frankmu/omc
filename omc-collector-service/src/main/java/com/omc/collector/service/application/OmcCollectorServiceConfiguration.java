@@ -64,7 +64,7 @@ public class OmcCollectorServiceConfiguration {
 	private String timestampFormat;
 
 	@Value("${omc.collector.service.quotecharacter}")
-	private char quoteCharacter;
+	private String quoteCharacter;
 
 	@Value("${omc.collector.service.whitespace}")
 	private String whiteSpace;
@@ -134,14 +134,21 @@ public class OmcCollectorServiceConfiguration {
 	@Bean
     public OmcCollectorServiceManager omcCollectorServiceManager() {
 		char delimiter;
+		char quote;
 		// Only accept single char white space delimiter
 		Assert.isTrue(whiteSpace != null && (whiteSpace.length() == 1 || whiteSpace.length() == 3), "White space charater is not valid.");
+		Assert.isTrue(quoteCharacter != null && (quoteCharacter.length() == 1 || quoteCharacter.length() == 3), "Quote charater is not valid.");
 		if(whiteSpace.length() == 1) {
 			delimiter = whiteSpace.charAt(0);
 		} else {
 			delimiter = whiteSpace.charAt(1);
 		}
-		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quoteCharacter, delimiter, omcObserverProperties().getObname());
+		if(quoteCharacter.length() == 1) {
+			quote = quoteCharacter.charAt(0);
+		} else {
+			quote = quoteCharacter.charAt(1);
+		}
+		return new OmcCollectorServiceManager(timestampRegex, timestampFormat, quote, delimiter, omcObserverProperties().getObname());
     }
 
 	@Bean
