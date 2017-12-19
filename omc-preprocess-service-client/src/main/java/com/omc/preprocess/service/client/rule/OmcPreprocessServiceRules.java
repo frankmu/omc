@@ -21,6 +21,14 @@ import java.util.Map;
  * 	e.g. {
  * 			"store_summary": "concatenate string from different event tokens"
  * 		}
+ *
+ *  Note: following fields are required fields:
+ *  "store_agent"
+ *  "store_class"
+ *  "store_summary";
+ *  "store_occurrence"
+ *  "store_identifier"
+ *  "system_dupfield"
  */
 public interface OmcPreprocessServiceRules {
 	public Map<String, Object> parse(Map<String, Object> data);

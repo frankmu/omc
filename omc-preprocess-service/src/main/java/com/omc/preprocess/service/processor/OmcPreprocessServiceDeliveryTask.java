@@ -1,5 +1,6 @@
 package com.omc.preprocess.service.processor;
 
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
@@ -10,6 +11,7 @@ import com.omc.geode.service.domain.OmcGeodeServiceResult;
 import com.omc.service.domain.OmcAlertDetail;
 import com.omc.service.domain.OmcAlertOrigin;
 import com.omc.service.domain.OmcEvent;
+import com.omc.service.domain.OmcEventConstant;
 import com.omc.service.domain.OmcObserverState;
 import com.omc.service.domain.OmcObserver.ResponseState;
 import com.omc.service.domain.OmcTask;
@@ -66,13 +68,15 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 			try {
 				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
-					OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
-					OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
-					if(!detailResult.isSuccessful()) {
-						throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
-					}
-					if(!originResult.isSuccessful()) {
-						throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
+					if(isValid(omcEvent)) {
+						OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
+						OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
+						if(!detailResult.isSuccessful()) {
+							throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
+						}
+						if(!originResult.isSuccessful()) {
+							throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
+						}
 					}
 				}
 				return true;
@@ -87,5 +91,16 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 			}
 		}
 		return false;
+	}
+
+	private boolean isValid(OmcEvent omcEvent) {
+		Map<String, Object> map = omcEvent.getData();
+		if(!map.containsKey(OmcEventConstant.STORE_AGENT) || !map.containsKey(OmcEventConstant.STORE_CLASS)
+				|| !map.containsKey(OmcEventConstant.STORE_SUMMARY) || !map.containsKey(OmcEventConstant.STORE_OCCURENCE)
+				|| !map.containsKey(OmcEventConstant.STORE_IDENTIFIER) || !map.containsKey(OmcEventConstant.SYSTEM_DEPFIELD)) {
+			logger.warn("Missing required field: " + map);
+			return false;
+		}
+		return true;
 	}
 }
