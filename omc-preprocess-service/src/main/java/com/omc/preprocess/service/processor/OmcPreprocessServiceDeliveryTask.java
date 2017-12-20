@@ -68,15 +68,15 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 			try {
 				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
-					if(isValid(omcEvent)) {
-						OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
+					if(isValidForAlertOrigin(omcEvent)) {
 						OmcGeodeServiceResult originResult = omcAlertService.createAlertOrigin(omcEvent.getEventid(), new OmcAlertOrigin(omcEvent));
-						if(!detailResult.isSuccessful()) {
-							throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
-						}
 						if(!originResult.isSuccessful()) {
 							throw new Exception("Error creating alert_origin record: [" + originResult.getErrorCode() + "] " + originResult.getErrorMessage());
 						}
+					}
+					OmcGeodeServiceResult detailResult = omcAlertService.createAlertDetail(omcEvent.getEventid(), new OmcAlertDetail(omcEvent));
+					if(!detailResult.isSuccessful()) {
+						throw new Exception("Error creating alert_detail record: [" + detailResult.getErrorCode() + "] " + detailResult.getErrorMessage());
 					}
 				}
 				return true;
@@ -93,7 +93,7 @@ public class OmcPreprocessServiceDeliveryTask extends OmcTask {
 		return false;
 	}
 
-	private boolean isValid(OmcEvent omcEvent) {
+	private boolean isValidForAlertOrigin(OmcEvent omcEvent) {
 		Map<String, Object> map = omcEvent.getData();
 		if(!map.containsKey(OmcEventConstant.STORE_AGENT) || !map.containsKey(OmcEventConstant.STORE_CLASS)
 				|| !map.containsKey(OmcEventConstant.STORE_SUMMARY) || !map.containsKey(OmcEventConstant.STORE_OCCURENCE)
