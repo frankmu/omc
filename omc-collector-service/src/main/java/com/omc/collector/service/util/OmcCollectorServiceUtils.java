@@ -31,7 +31,7 @@ public final class OmcCollectorServiceUtils {
 	}
 
 	public static String generateEventId(String obname) {
-		Instant now = Instant.now();
+		Instant now = Instant.now(new OmcCollectorServiceNanoClock());
 		String timestamp = String.valueOf(now.getEpochSecond());
 		String nano = String.valueOf(now.getNano());
 		return obname + "-" + timestamp + "." + nano;
