@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -12,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 public final class OmcCollectorServiceUtils {
 
 	private static final Log logger = LogFactory.getLog(OmcCollectorServiceUtils.class);
+	private static AtomicInteger counter = new AtomicInteger(0);
 
 	public static Long getFormattedTimestamp(String timestamp, String pattern) {
 		try {
@@ -34,6 +36,6 @@ public final class OmcCollectorServiceUtils {
 		Instant now = Instant.now(new OmcCollectorServiceNanoClock());
 		String timestamp = String.valueOf(now.getEpochSecond());
 		String nano = String.valueOf(now.getNano());
-		return obname + "-" + timestamp + "." + nano;
+		return obname + "-" + counter.getAndIncrement() + "-"+ timestamp + "." + nano;
 	}
 }
