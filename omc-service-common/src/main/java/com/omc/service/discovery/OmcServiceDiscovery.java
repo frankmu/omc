@@ -4,7 +4,8 @@ public interface OmcServiceDiscovery {
 
 	public enum DiscoveryMode {
 	    ZOOKEEPER,
-	    DNS
+	    DNS,
+	    URL
 	}
 
     public String discoverServiceURI(String name);

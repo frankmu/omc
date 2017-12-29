@@ -1,6 +1,6 @@
 package com.omc.service.discovery;
 
-public class OmcDNSServiceDiscovery implements OmcServiceDiscovery {
+public class OmcBaseServiceDiscovery implements OmcServiceDiscovery {
 
 	@Override
 	public String discoverServiceURI(String host) {

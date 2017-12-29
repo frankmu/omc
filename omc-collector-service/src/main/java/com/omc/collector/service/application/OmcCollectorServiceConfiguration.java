@@ -13,7 +13,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 import com.omc.collector.service.processor.OmcCollectorServiceManager;
-import com.omc.service.discovery.OmcDNSServiceDiscovery;
+import com.omc.service.discovery.OmcBaseServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery.DiscoveryMode;
 import com.omc.service.domain.OmcEvent;
@@ -125,8 +125,8 @@ public class OmcCollectorServiceConfiguration {
     public OmcServiceDiscovery omcServiceDiscovery() {
 		if(DiscoveryMode.ZOOKEEPER.toString().equalsIgnoreCase(discoveryMode)) {
 			return OmcZookeeperServiceRegistry();
-		} else if(DiscoveryMode.DNS.toString().equalsIgnoreCase(discoveryMode)) {
-			return new OmcDNSServiceDiscovery();
+		} else if(DiscoveryMode.DNS.toString().equalsIgnoreCase(discoveryMode) || DiscoveryMode.URL.toString().equalsIgnoreCase(discoveryMode)) {
+			return new OmcBaseServiceDiscovery();
 		}
 		return null;
     }
