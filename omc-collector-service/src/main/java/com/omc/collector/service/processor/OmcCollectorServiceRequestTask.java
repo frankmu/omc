@@ -103,6 +103,7 @@ public class OmcCollectorServiceRequestTask implements Runnable{
 			logger.debug("Create OmcEvent: " + omcEvent.toString());
 			return omcEvent;
 		} else {
+			omcObserverState.incrementFailCount();
 			logger.error("Cannot extract timestamp from: " + message + " using regex: " + this.omcCollectorServiceManager.getTimestampRegex());
 			return null;
 		}

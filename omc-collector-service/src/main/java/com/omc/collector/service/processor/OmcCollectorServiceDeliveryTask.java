@@ -4,7 +4,11 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import com.omc.service.discovery.OmcServiceDiscovery;
 import com.omc.service.domain.OmcEvent;
@@ -21,17 +25,20 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 	private String deliveryMode;
 	private OmcObserverState omcObserverState;
 	private int deliveryRetryCount;
+	private AsyncRestTemplate restTemplate;
 
 	public OmcCollectorServiceDeliveryTask(BlockingQueue<OmcEvent> deliveryQueue, 
 			OmcServiceDiscovery omcServiceDiscovery,
 			String deliveryMode,
 			OmcObserverState omcObserverState,
-			int deliveryRetryCount) {
+			int deliveryRetryCount,
+			AsyncRestTemplate restTemplate) {
 		super(deliveryQueue);
 		this.omcServiceDiscovery = omcServiceDiscovery;
 		this.deliveryMode = deliveryMode;
 		this.omcObserverState = omcObserverState;
 		this.deliveryRetryCount = deliveryRetryCount;
+		this.restTemplate = restTemplate;
 	}
 
 	@Override
@@ -41,13 +48,7 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 			try {
 				OmcEvent omcEvent = this.omcQueue.take();
 				logger.debug("Get task from Delivery Queue: " + omcEvent.toString());
-				if (process(omcEvent)) {
-					omcObserverState.incrementSuccCount();
-					logger.debug("Successfully deliveried event: " + omcEvent.toString());
-				} else {
-					logger.debug("Exceeded max retry count, delivery service error!");
-					break;
-				}
+				process(omcEvent);
 			} catch (InterruptedException e) {
 				logger.error("Thread was interrupted!");
 				break;
@@ -58,27 +59,41 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 		logger.debug("Delivery Queue worker thread stopped!");
 	}
 
-	private boolean process(OmcEvent omcEvent) {
-		int retryCount = 0;
-		while(retryCount <= deliveryRetryCount) {
+	private void process(final OmcEvent omcEvent) {
+		if(omcObserverState.getFailCount() <= deliveryRetryCount) {
 			try {
 				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
 				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
 					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
-					RestTemplate restTemplate = new RestTemplate();
-					restTemplate.postForEntity("http://" + uri + "/go", omcEvent, boolean.class);
+					HttpEntity<OmcEvent> entity = new HttpEntity<OmcEvent>(omcEvent);
+					ListenableFuture<ResponseEntity<Boolean>> futureEntity = restTemplate.postForEntity("http://" + uri + "/go", entity, Boolean.class);
+					futureEntity.addCallback(new ListenableFutureCallback<ResponseEntity<Boolean>>() {
+				        @Override
+						public void onSuccess(ResponseEntity<Boolean> result) {
+							omcObserverState.incrementSuccCount();
+							logger.debug("Successfully deliveried event: " + omcEvent.toString());
+						}
+
+				        @Override
+						public void onFailure(Throwable ex) {
+							omcObserverState.incrementFailCount();
+							logger.error(ex.getMessage());
+							// Recursion call to process function when error happens
+							process(omcEvent);
+						}
+				    });
 				}
-				return true;
 			} catch (Exception e) {
 				omcObserverState.incrementFailCount();
-				logger.error(e.getMessage() + " [Retry " + retryCount++ + "/" + deliveryRetryCount + "]");
+				logger.error(e.getMessage());
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException ie) {
 					logger.error("Thread was interrupted!");
 				}
 			}
+		} else {
+			logger.error("Max fail count reached, need to restart the service.");
 		}
-		return false;
 	}
 }

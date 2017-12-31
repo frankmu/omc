@@ -5,12 +5,22 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.AsyncClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import com.omc.collector.service.processor.OmcCollectorServiceManager;
 import com.omc.service.discovery.OmcBaseServiceDiscovery;
@@ -45,6 +55,9 @@ public class OmcCollectorServiceConfiguration {
 	@Value("${omc.delivery.task.thread.size}")
 	private int deliveryTaskThreadSize;
 
+	@Value("${omc.delivery.nio.thread.size:1}")
+	private int deliveryNIOThreadSize;
+
 	@Value("${zookeeper.host:}")
 	private String zookeeperHost;
 
@@ -68,6 +81,21 @@ public class OmcCollectorServiceConfiguration {
 
 	@Value("${omc.collector.service.whitespace}")
 	private String whiteSpace;
+
+    @Value("${omc.http.maxTotalConnections:20}")
+    private int maxTotalConnections;
+
+    @Value("${omc.http.maxConnectionsPerRoute:2}")
+    private int maxConnectionsPerRoute;
+
+    @Value("${omc.http.connection.request.timeout:10000}")
+    private int connectionRequestTimeout;
+
+    @Value("${omc.http.connection.socket.timeout:2000}")
+    private int socketTimeout;
+
+    @Value("${omc.http.connection.connect.timeout:2000}")
+    private int connectTimeout;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
 
@@ -160,5 +188,47 @@ public class OmcCollectorServiceConfiguration {
 		pool.setThreadNamePrefix("OMC-Worker-");
 		logger.debug("Initialize Worker Executor with pool size: " + totalThreadSize);
 		return pool;
+	}
+
+	@Bean
+	public ThreadPoolTaskExecutor nioWorkerExecutor() {
+		ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
+		pool.setCorePoolSize(deliveryNIOThreadSize);
+		pool.setThreadNamePrefix("OMC-NIO-");
+		return pool;
+	}
+
+    @Bean
+    public AsyncClientHttpRequestFactory clientHttpRequestFactory(CloseableHttpAsyncClient closeableHttpAsyncClient) {
+		HttpComponentsAsyncClientHttpRequestFactory factory = new HttpComponentsAsyncClientHttpRequestFactory(closeableHttpAsyncClient);
+		return factory;
+    }
+
+    @Bean
+    public CloseableHttpAsyncClient asyncHttpClient(PoolingNHttpClientConnectionManager poolingNHttpClientConnectionManager) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(connectTimeout)
+                .setSocketTimeout(socketTimeout)
+                .setConnectionRequestTimeout(connectionRequestTimeout)
+                .build();
+
+        return HttpAsyncClientBuilder
+                .create()
+                .setConnectionManager(poolingNHttpClientConnectionManager)
+                .setDefaultRequestConfig(config).build();
+    }
+
+    @Bean
+    PoolingNHttpClientConnectionManager poolingNHttpClientConnectionManager() throws IOReactorException {
+        PoolingNHttpClientConnectionManager connectionManager = new PoolingNHttpClientConnectionManager(
+                new DefaultConnectingIOReactor(IOReactorConfig.DEFAULT, nioWorkerExecutor()));
+        connectionManager.setMaxTotal(maxTotalConnections);
+        connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
+        return connectionManager;
+    }
+
+	@Bean
+	public AsyncRestTemplate restTemplate(AsyncClientHttpRequestFactory asyncClientHttpRequestFactory) {
+		return new AsyncRestTemplate(asyncClientHttpRequestFactory);
 	}
 }

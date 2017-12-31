@@ -17,6 +17,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import com.omc.collector.service.processor.OmcCollectorServiceDeliveryTask;
 import com.omc.collector.service.processor.OmcCollectorServiceManager;
@@ -81,6 +82,9 @@ public class OmcCollectorServiceInitializer {
 	@Autowired
 	private ConfigurableApplicationContext context;
 
+	@Autowired
+	private AsyncRestTemplate restTemplate;
+
 	@PostConstruct
 	public void init() throws UnknownHostException {
 		// Start the worker threads
@@ -89,7 +93,7 @@ public class OmcCollectorServiceInitializer {
 		}
 
 		for(int i = 0; i < deliveryTaskThreadSize; i++) {
-			workerExecutor.execute(new OmcCollectorServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount));
+			workerExecutor.execute(new OmcCollectorServiceDeliveryTask(deliveryQueue, omcServiceDiscovery, deliveryMode, omcObserverState, deliveryRetryCount, restTemplate));
 		}
 
 		if(shellCommand != null && shellCommand.length() > 0) {
