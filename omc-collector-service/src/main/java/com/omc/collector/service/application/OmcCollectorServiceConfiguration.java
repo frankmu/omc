@@ -82,20 +82,20 @@ public class OmcCollectorServiceConfiguration {
 	@Value("${omc.collector.service.whitespace}")
 	private String whiteSpace;
 
-    @Value("${omc.http.maxTotalConnections:20}")
-    private int maxTotalConnections;
+	@Value("${omc.http.maxTotalConnections:200}")
+	private int maxTotalConnections;
 
-    @Value("${omc.http.maxConnectionsPerRoute:2}")
-    private int maxConnectionsPerRoute;
+	@Value("${omc.http.maxDefaultConnectionsPerRoute:10}")
+	private int maxDefaultConnectionsPerRoute;
 
-    @Value("${omc.http.connection.request.timeout:10000}")
-    private int connectionRequestTimeout;
+	@Value("${omc.http.connection.request.timeout:0}")
+	private int connectionRequestTimeout;
 
-    @Value("${omc.http.connection.socket.timeout:2000}")
-    private int socketTimeout;
+	@Value("${omc.http.connection.socket.timeout:0}")
+	private int socketTimeout;
 
-    @Value("${omc.http.connection.connect.timeout:2000}")
-    private int connectTimeout;
+	@Value("${omc.http.connection.connect.timeout:0}")
+	private int connectTimeout;
 
 	private final Log logger = LogFactory.getLog(OmcCollectorServiceConfiguration.class);
 
@@ -223,7 +223,7 @@ public class OmcCollectorServiceConfiguration {
         PoolingNHttpClientConnectionManager connectionManager = new PoolingNHttpClientConnectionManager(
                 new DefaultConnectingIOReactor(IOReactorConfig.DEFAULT, nioWorkerExecutor()));
         connectionManager.setMaxTotal(maxTotalConnections);
-        connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
+        connectionManager.setDefaultMaxPerRoute(maxDefaultConnectionsPerRoute);
         return connectionManager;
     }
 

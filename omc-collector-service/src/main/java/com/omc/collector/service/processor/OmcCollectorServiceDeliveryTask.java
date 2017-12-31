@@ -60,40 +60,41 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 	}
 
 	private void process(final OmcEvent omcEvent) {
-		if(omcObserverState.getFailCount() <= deliveryRetryCount) {
-			try {
-				OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
-				if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
-					String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
-					HttpEntity<OmcEvent> entity = new HttpEntity<OmcEvent>(omcEvent);
-					ListenableFuture<ResponseEntity<Boolean>> futureEntity = restTemplate.postForEntity("http://" + uri + "/go", entity, Boolean.class);
-					futureEntity.addCallback(new ListenableFutureCallback<ResponseEntity<Boolean>>() {
-				        @Override
-						public void onSuccess(ResponseEntity<Boolean> result) {
-							omcObserverState.incrementSuccCount();
-							logger.debug("Successfully deliveried event: " + omcEvent.toString());
-						}
+		try {
+			OmcEventUtil.updateObserverDeliveryState(omcEvent, ResponseState.SUCCESS);
+			if (deliveryMode != null && !EMPTY_DELIVERY_MODE.equalsIgnoreCase(deliveryMode)) {
+				String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
+				HttpEntity<OmcEvent> entity = new HttpEntity<OmcEvent>(omcEvent);
+				ListenableFuture<ResponseEntity<Boolean>> futureEntity = restTemplate
+						.postForEntity("http://" + uri + "/go", entity, Boolean.class);
+				futureEntity.addCallback(new ListenableFutureCallback<ResponseEntity<Boolean>>() {
+					@Override
+					public void onSuccess(ResponseEntity<Boolean> result) {
+						omcObserverState.incrementSuccCount();
+						logger.debug("Successfully deliveried event: " + omcEvent.toString());
+					}
 
-				        @Override
-						public void onFailure(Throwable ex) {
-							omcObserverState.incrementFailCount();
-							logger.error(ex.getMessage());
+					@Override
+					public void onFailure(Throwable ex) {
+						if (omcObserverState.incrementAndGetFailCount() <= deliveryRetryCount) {
+							logger.error("OnFailure callback handler: " + ex.toString() + ", ignore current event: " + omcEvent);
+							// TODO: implement the retry handler here
 							// Recursion call to process function when error happens
-							process(omcEvent);
+							// omcQueue.put(omcEvent);
+						} else {
+							logger.error("Max fail count reached, ignore current event: " + omcEvent);
 						}
-				    });
-				}
-			} catch (Exception e) {
-				omcObserverState.incrementFailCount();
-				logger.error(e.getMessage());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ie) {
-					logger.error("Thread was interrupted!");
-				}
+					}
+				});
 			}
-		} else {
-			logger.error("Max fail count reached, need to restart the service.");
+		} catch (Exception e) {
+			omcObserverState.incrementFailCount();
+			logger.error(e.getMessage());
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ie) {
+				logger.error("Thread was interrupted!");
+			}
 		}
 	}
 }

@@ -67,4 +67,13 @@ public class OmcObserverState {
 	public void incrementFailCount() {
 		FailCount.incrementAndGet();
 	}
+	public int incrementAndGetSuccCount() {
+		return SuccCount.incrementAndGet();
+	}
+	public int incrementAndGetWarnCount() {
+		return WarnCount.incrementAndGet();
+	}
+	public int incrementAndGetFailCount() {
+		return FailCount.incrementAndGet();
+	}
 }
