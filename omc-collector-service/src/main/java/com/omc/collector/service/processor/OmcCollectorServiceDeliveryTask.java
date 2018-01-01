@@ -66,7 +66,8 @@ public class OmcCollectorServiceDeliveryTask extends OmcTask {
 				String uri = omcServiceDiscovery.discoverServiceURI(deliveryMode);
 				HttpEntity<OmcEvent> entity = new HttpEntity<OmcEvent>(omcEvent);
 				ListenableFuture<ResponseEntity<Boolean>> futureEntity = restTemplate
-						.postForEntity("http://" + uri + "/go", entity, Boolean.class);
+//						.postForEntity("http://" + uri + "/go", entity, Boolean.class);
+						.postForEntity(uri, entity, Boolean.class);
 				futureEntity.addCallback(new ListenableFutureCallback<ResponseEntity<Boolean>>() {
 					@Override
 					public void onSuccess(ResponseEntity<Boolean> result) {
