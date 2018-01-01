@@ -5,12 +5,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
@@ -72,6 +78,21 @@ public class OmcPreprocessServiceConfiguration {
 
 	@Value("${omc.geode.region.alert.detail}")
 	private String geodeRegionAlertDetail;
+
+	@Value("${omc.http.maxTotalConnections:200}")
+	private int maxTotalConnections;
+
+	@Value("${omc.http.maxDefaultConnectionsPerRoute:10}")
+	private int maxDefaultConnectionsPerRoute;
+
+	@Value("${omc.http.connection.request.timeout:0}")
+	private int connectionRequestTimeout;
+
+	@Value("${omc.http.connection.socket.timeout:0}")
+	private int socketTimeout;
+
+	@Value("${omc.http.connection.connect.timeout:0}")
+	private int connectTimeout;
 
 	@Autowired
 	private ConfigurableApplicationContext ctx;
@@ -151,7 +172,7 @@ public class OmcPreprocessServiceConfiguration {
 	@Bean
 	public OmcPreprocessServiceRules omcPreprocessServiceRules() {
 		try {
-			return (OmcPreprocessServiceRules) Class.forName( parserClassname).newInstance();
+			return (OmcPreprocessServiceRules) Class.forName(parserClassname).newInstance();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			logger.error("No available parser class found in classpath. " + e.getMessage());
 			ctx.close();
@@ -160,12 +181,42 @@ public class OmcPreprocessServiceConfiguration {
 	}
 
 	@Bean
-	public RestTemplate restTemplate() {
-		return new RestTemplate();
+	public RequestConfig requestConfig() {
+		RequestConfig config = RequestConfig.custom()
+				.setConnectionRequestTimeout(connectionRequestTimeout)
+				.setConnectTimeout(connectTimeout)
+				.setSocketTimeout(socketTimeout)
+				.build();
+		return config;
 	}
 
 	@Bean
-	public OmcAlertService omcAlertService() {
-		return new OmcAlertServiceImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail, restTemplate());
+	public PoolingHttpClientConnectionManager poolingHttpClientConnectionManager() {
+		PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
+		manager.setMaxTotal(maxTotalConnections);
+		manager.setDefaultMaxPerRoute(maxDefaultConnectionsPerRoute);
+		return manager;
+	}
+
+	@Bean
+	public CloseableHttpClient httpClient(PoolingHttpClientConnectionManager poolingHttpClientConnectionManager,
+			RequestConfig requestConfig) {
+		CloseableHttpClient client = HttpClientBuilder.create()
+				.setConnectionManager(poolingHttpClientConnectionManager)
+				.setDefaultRequestConfig(requestConfig)
+				.build();
+		return client;
+	}
+
+	@Bean
+	public RestTemplate restTemplate(HttpClient httpClient) {
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		requestFactory.setHttpClient(httpClient);
+		return new RestTemplate(requestFactory);
+	}
+
+	@Bean
+	public OmcAlertService omcAlertService(HttpClient httpClient) {
+		return new OmcAlertServiceImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail, restTemplate(httpClient));
 	}
 }
