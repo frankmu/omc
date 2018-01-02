@@ -27,5 +27,10 @@
 			<artifactId>gson</artifactId>
 			<version>${gson.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.geode</groupId>
+			<artifactId>geode-core</artifactId>
+			<version>${geode.version}</version>
+		</dependency>
 	</dependencies>
 </project>

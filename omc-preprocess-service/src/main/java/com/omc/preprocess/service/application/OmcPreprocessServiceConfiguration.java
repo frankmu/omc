@@ -5,6 +5,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.geode.cache.client.ClientCache;
+import org.apache.geode.cache.client.ClientCacheFactory;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -21,7 +23,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import com.omc.geode.service.api.OmcAlertService;
-import com.omc.geode.service.impl.OmcAlertServiceImpl;
+import com.omc.geode.service.impl.OmcAlertServiceClientCacheImpl;
+import com.omc.geode.service.impl.OmcAlertServiceRestImpl;
 import com.omc.preprocess.service.client.rule.OmcPreprocessServiceRules;
 import com.omc.service.discovery.OmcBaseServiceDiscovery;
 import com.omc.service.discovery.OmcServiceDiscovery;
@@ -215,8 +218,25 @@ public class OmcPreprocessServiceConfiguration {
 		return new RestTemplate(requestFactory);
 	}
 
+	@Bean(destroyMethod = "close")
+	public ClientCache clientCache() {
+		ClientCache clientCache = new ClientCacheFactory()
+				.set("name", "CVizClientCache")
+				.set("cache-xml-file", "client-cache.xml")
+				.create();
+		return clientCache;
+	}
+
 	@Bean
-	public OmcAlertService omcAlertService(HttpClient httpClient) {
-		return new OmcAlertServiceImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail, restTemplate(httpClient));
+	public OmcAlertService omcAlertService(@Value("${omc.delivery.geode.mode:client_cache}") String geodeMode, HttpClient httpClient) {
+		if("rest".equalsIgnoreCase(geodeMode)) {
+			logger.debug("Initialize OmcAlertServiceRestImpl bean with rest url: " + geodeRestUrl);
+			return new OmcAlertServiceRestImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail,
+					restTemplate(httpClient));
+		}else if("client_cache".equalsIgnoreCase(geodeMode)) {
+			logger.debug("Initialize OmcAlertServiceClientCacheImpl bean with client cache.");
+			return new OmcAlertServiceClientCacheImpl(clientCache(), geodeRegionAlertOrigin, geodeRegionAlertDetail);
+		}
+		return null;
 	}
 }

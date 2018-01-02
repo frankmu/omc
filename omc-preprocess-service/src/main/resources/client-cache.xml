@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<client-cache xmlns="http://geode.apache.org/schema/cache"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://geode.apache.org/schema/cache http://geode.apache.org/schema/cache/cache-1.0.xsd"
+	version="1.0">
+
+	<pool name="geodePool" read-timeout="20000" socket-buffer-size="256000"
+		retry-attempts="2" subscription-enabled="false" pr-single-hop-enabled="false">
+		<locator host="192.168.1.451" port="9001" />
+	</pool>
+
+	<region-attributes id="omcAttributes" pool-name="geodePool" refid="CACHING_PROXY" />
+
+	<region name="alert_origin">
+		<region-attributes refid="omcAttributes" />
+	</region>
+	<region name="alert_status">
+		<region-attributes refid="omcAttributes" />
+	</region>
+	<region name="alert_detail">
+		<region-attributes refid="omcAttributes" />
+	</region>
+	<region name="alert_lock">
+		<region-attributes refid="omcAttributes" />
+	</region>
+
+</client-cache>
