@@ -5,8 +5,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.geode.cache.Region;
 import org.apache.geode.cache.client.ClientCache;
 import org.apache.geode.cache.client.ClientCacheFactory;
+import org.apache.geode.cache.client.ClientRegionFactory;
+import org.apache.geode.cache.client.ClientRegionShortcut;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -81,6 +84,21 @@ public class OmcPreprocessServiceConfiguration {
 
 	@Value("${omc.geode.region.alert.detail}")
 	private String geodeRegionAlertDetail;
+
+	@Value("${omc.geode.pool.locator.host}")
+	private String geodePoolLocatorHost;
+
+	@Value("${omc.geode.pool.locator.port}")
+	private int geodePoolLocatorPort;
+
+	@Value("${omc.geode.pool.read.timeout}")
+	private int geodePoolReadTimeout;
+
+	@Value("${omc.geode.pool.socket.buffer.size}")
+	private int geodePoolSocketBufferSize;
+
+	@Value("${omc.geode.pool.retry.attempts}")
+	private int geodePoolRetryAttempts;
 
 	@Value("${omc.http.maxTotalConnections:200}")
 	private int maxTotalConnections;
@@ -222,20 +240,40 @@ public class OmcPreprocessServiceConfiguration {
 	public ClientCache clientCache() {
 		ClientCache clientCache = new ClientCacheFactory()
 				.set("name", "CVizClientCache")
-				.set("cache-xml-file", "client-cache.xml")
+				.addPoolLocator(geodePoolLocatorHost, geodePoolLocatorPort)
+				.setPoolReadTimeout(geodePoolReadTimeout)
+				.setPoolSocketBufferSize(geodePoolSocketBufferSize)
+				.setPoolRetryAttempts(geodePoolRetryAttempts)
+				.setPoolPRSingleHopEnabled(false)
+				.setPoolSubscriptionEnabled(false)
 				.create();
 		return clientCache;
 	}
 
 	@Bean
-	public OmcAlertService omcAlertService(@Value("${omc.delivery.geode.mode:client_cache}") String geodeMode, HttpClient httpClient) {
+	ClientRegionFactory<String, Object> clientRegionFactory(ClientCache clientCache) {
+		return clientCache.createClientRegionFactory(ClientRegionShortcut.PROXY);
+	}
+
+	@Bean
+	Region<String, Object> originRegion(ClientRegionFactory<String, Object> clientRegionFactory){
+		return clientRegionFactory.create(geodeRegionAlertOrigin);
+	}
+
+	@Bean
+	Region<String, Object> detailRegion(ClientRegionFactory<String, Object> clientRegionFactory){
+		return clientRegionFactory.create(geodeRegionAlertDetail);
+	}
+
+	@Bean
+	public OmcAlertService omcAlertService(@Value("${omc.delivery.geode.mode:client_cache}") String geodeMode, HttpClient httpClient, ClientRegionFactory<String, Object> clientRegionFactory) {
 		if("rest".equalsIgnoreCase(geodeMode)) {
 			logger.debug("Initialize OmcAlertServiceRestImpl bean with rest url: " + geodeRestUrl);
 			return new OmcAlertServiceRestImpl(geodeRestUrl, geodeRegionAlertOrigin, geodeRegionAlertDetail,
 					restTemplate(httpClient));
 		}else if("client_cache".equalsIgnoreCase(geodeMode)) {
 			logger.debug("Initialize OmcAlertServiceClientCacheImpl bean with client cache.");
-			return new OmcAlertServiceClientCacheImpl(clientCache(), geodeRegionAlertOrigin, geodeRegionAlertDetail);
+			return new OmcAlertServiceClientCacheImpl(originRegion(clientRegionFactory), detailRegion(clientRegionFactory));
 		}
 		return null;
 	}
