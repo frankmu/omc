@@ -24,7 +24,7 @@
 		<module>../omc-test-service</module>
 		<module>../omc-collector-service</module>
 		<module>../omc-preprocess-service-client</module>
-		<module>../omc-preprocess-service-sample-parser</module>
+		<module>../omc-preprocess-service-generic-syslog-parser</module>
 		<module>../omc-preprocess-service</module>
 	</modules>
 	<build>
