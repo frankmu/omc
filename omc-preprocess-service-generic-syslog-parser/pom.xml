@@ -8,7 +8,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath>../omc-parent/pom.xml</relativePath>
 	</parent>
-	<artifactId>omc-preprocess-service-sample-parser</artifactId>
+	<artifactId>omc-preprocess-service-generic-syslog-parser</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>
